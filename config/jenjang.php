@@ -33,7 +33,7 @@ return [
             ],
             [
                 'title' => 'Stimulasi Bakat & Motorik',
-                'description' => 'Kegiatan seni, musik, bercerita, dan olahraga ceria untuk menumbuhkan kepercayaan diri dan koordinasi tubuh.',
+                'description' => 'Kegiatan, bercerita, dan olahraga ceria untuk menumbuhkan kepercayaan diri dan koordinasi tubuh.',
                 'icon' => 'fa-child-reaching',
             ],
         ],
@@ -51,19 +51,15 @@ return [
             'Pelaporan perkembangan berkala bersama orang tua.',
         ],
         'extracurriculars' => [
-            'Seni & Musik',
             'Bercerita',
             'Olahraga Ceria',
-            'Bermain Peran',
             'Kunjungan Edukatif',
+            'Renang',
         ],
         'facilities' => [
             'Ruang kelas sentra',
             'Area bermain aman',
-            'Perpustakaan mini',
             'Masjid sekolah',
-            'Ruang UKS',
-            'Kantin sehat',
         ],
     ],
 
@@ -127,12 +123,10 @@ return [
             'Karate Wadokai',
         ],
         'facilities' => [
-            'Ruang kelas ber-AC',
+            'Ruang kelas yang nyaman',
             'Perpustakaan',
-            'Laboratorium komputer',
             'Masjid sekolah',
             'Lapangan olahraga',
-            'Ruang UKS',
         ],
     ],
 
@@ -193,9 +187,7 @@ return [
             'Berkuda Memanah',
         ],
         'facilities' => [
-            'Ruang kelas multimedia',
-            'Laboratorium IPA',
-            'Laboratorium komputer',
+            'Ruang kelas yang nyaman',
             'Perpustakaan',
             'Masjid sekolah',
             'Lapangan serbaguna',
@@ -260,9 +252,7 @@ return [
             'Multimedia',
         ],
         'facilities' => [
-            'Ruang kelas multimedia',
-            'Laboratorium IPA terpadu',
-            'Laboratorium komputer & multimedia',
+            'Ruang kelas yang nyaman dan ber-AC',
             'Ruang diskusi khusus putri',
             'Perpustakaan',
             'Musholla / Masjid sekolah',
