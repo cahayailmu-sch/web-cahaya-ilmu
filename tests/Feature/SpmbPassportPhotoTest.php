@@ -78,6 +78,7 @@ class SpmbPassportPhotoTest extends TestCase
                 'ayah_nama' => 'Umar Abdullah',
                 'ayah_hp' => '081234567890',
                 'ibu_nama' => 'Khadijah',
+                'has_alumni_siblings' => 'TIDAK ADA',
             ],
             'fee' => [
                 'pilihan_uang_masuk' => '1',

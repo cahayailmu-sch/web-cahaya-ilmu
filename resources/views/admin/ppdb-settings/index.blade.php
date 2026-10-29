@@ -357,7 +357,7 @@
                         </span>
                         <div>
                             <h2 class="text-sm font-semibold text-slate-900">Kelola Kode Referral &amp; Promo KB-TK</h2>
-                            <p class="text-xs text-slate-500">Pantau 10 kode Event Muslim Vibes dan kelola kode referral kakak alumni yang dapat dipakai berulang.</p>
+                            <p class="text-xs text-slate-500">Pantau dan kelola 10 kode voucher Event Muslim Vibes yang membebaskan biaya pendaftaran.</p>
                         </div>
                     </div>
                     <a href="#form-kode-referral-baru"
@@ -483,101 +483,12 @@
                     </div>
                 </div>
 
-                <div class="mt-8 grid gap-6 xl:grid-cols-[1.6fr_1fr]">
-                    <div>
-                        <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-500">
-                            Kode Referral Kakak Alumni — Potongan Rp 500.000
-                        </h3>
-
-                        <div class="mt-3 overflow-x-auto rounded-xl border border-slate-200">
-                            <table class="min-w-full divide-y divide-slate-200 text-sm">
-                                <thead class="bg-slate-50 text-left text-[10px] font-semibold uppercase tracking-wider text-slate-500">
-                                    <tr>
-                                        <th class="px-4 py-2.5">Kode</th>
-                                        <th class="px-4 py-2.5">Pemakaian</th>
-                                        <th class="px-4 py-2.5">Status</th>
-                                        <th class="px-4 py-2.5 text-right">Aksi</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-100">
-                                    @forelse ($siblingReferralCodes as $siblingCode)
-                                        <tr class="align-top">
-                                            <td class="px-4 py-3">
-                                                <p class="font-mono text-xs font-extrabold text-slate-800">{{ $siblingCode->code }}</p>
-                                                @if (filled($siblingCode->notes))
-                                                    <p class="mt-1 max-w-[16rem] text-[11px] leading-5 text-slate-400">{{ $siblingCode->notes }}</p>
-                                                @endif
-                                            </td>
-                                            <td class="px-4 py-3 text-xs text-slate-600">
-                                                <span class="font-bold text-slate-800">{{ $siblingCode->used_count }}</span> / {{ $siblingCode->max_uses }}
-                                                <span class="block text-[10px] text-slate-400">Sisa {{ $siblingCode->remainingUses() }}</span>
-                                            </td>
-                                            <td class="px-4 py-3">
-                                                @if ($siblingCode->is_active && ! $siblingCode->isExhausted())
-                                                    <span class="rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-700">Aktif</span>
-                                                @elseif ($siblingCode->is_active)
-                                                    <span class="rounded-md bg-amber-50 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-amber-700">Habis</span>
-                                                @else
-                                                    <span class="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-500">Nonaktif</span>
-                                                @endif
-                                            </td>
-                                            <td class="px-4 py-3">
-                                                <div class="flex flex-wrap justify-end gap-1.5">
-                                                    <button type="button"
-                                                            onclick="openReferralEditModal({{ $siblingCode->id }})"
-                                                            class="rounded-lg bg-slate-100 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-200">
-                                                        Edit
-                                                    </button>
-                                                    @if ($siblingCode->used_count > 0)
-                                                        <form method="POST" action="{{ route('admin.referrals.reset', $siblingCode) }}"
-                                                              onsubmit='return confirm(@js("Yakin ingin mereset status pemakaian kode ini agar bisa digunakan kembali?"))'>
-                                                            @csrf
-                                                            <button type="submit"
-                                                                    class="rounded-lg bg-amber-50 px-2.5 py-1.5 text-[11px] font-semibold text-amber-700 ring-1 ring-inset ring-amber-600/20 transition hover:bg-amber-100">
-                                                                Reset
-                                                            </button>
-                                                        </form>
-                                                    @endif
-                                                    <form method="POST" action="{{ route('admin.referral-codes.toggle', $siblingCode) }}">
-                                                        @csrf
-                                                        @method('PATCH')
-                                                        <button type="submit"
-                                                                class="rounded-lg bg-slate-100 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 transition hover:bg-slate-200">
-                                                            {{ $siblingCode->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
-                                                        </button>
-                                                    </form>
-                                                    <form method="POST"
-                                                          action="{{ route('admin.referrals.destroy', $siblingCode) }}"
-                                                          onsubmit="return confirm('Apakah Anda yakin ingin menghapus kode referral ini?');">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                        <button type="submit"
-                                                                class="inline-flex items-center gap-1 rounded-lg bg-rose-50 px-2.5 py-1.5 text-[11px] font-semibold text-rose-700 ring-1 ring-inset ring-rose-600/20 transition hover:bg-rose-100">
-                                                            <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
-                                                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                                                            </svg>
-                                                            Hapus
-                                                        </button>
-                                                    </form>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="4" class="px-4 py-8 text-center text-xs text-slate-400">
-                                                Belum ada kode referral kakak alumni.
-                                            </td>
-                                        </tr>
-                                    @endforelse
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                <div class="mt-8">
 
                     <div id="form-kode-referral-baru" class="scroll-mt-24 rounded-xl border border-slate-200 bg-slate-50/60 p-4">
                         <h3 class="text-sm font-semibold text-slate-900">Tambah Kode Referral Baru</h3>
                         <p class="mt-1 text-[11px] leading-5 text-slate-500">
-                            Buat kode event susulan (gratis biaya pendaftaran) atau kode kakak alumni di luar daftar default. Kode otomatis disimpan dalam huruf kapital.
+                            Buat kode voucher Event Muslim Vibes (gratis biaya pendaftaran). Kode otomatis disimpan dalam huruf kapital.
                         </p>
 
                         @if ($errors->referralCreate->any())
@@ -601,7 +512,7 @@
                                            type="text"
                                            maxlength="30"
                                            value="{{ $errors->referralCreate->any() ? old('code') : '' }}"
-                                           placeholder="ALUMNI26-01"
+                                           placeholder="CI26-XXXX"
                                            autocomplete="off"
                                            class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 font-mono text-xs font-bold uppercase tracking-wider shadow-sm outline-none transition placeholder:font-normal placeholder:tracking-normal placeholder:text-slate-400 focus:border-rose-400 focus:ring-2 focus:ring-rose-100">
                                     <button type="button"
@@ -617,15 +528,10 @@
 
                             <div>
                                 <label for="new-referral-type" class="block text-xs font-semibold text-slate-700">Jenis Kode</label>
-                                <select id="new-referral-type"
-                                        name="type"
-                                        class="mt-1 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm outline-none transition focus:border-rose-400 focus:ring-2 focus:ring-rose-100">
-                                    @foreach (\App\Models\ReferralCode::TYPES as $typeKey => $typeMeta)
-                                        <option value="{{ $typeKey }}" @selected(($errors->referralCreate->any() ? old('type') : \App\Models\ReferralCode::TYPE_SIBLING_ALUMNI) === $typeKey)>
-                                            {{ $typeMeta['label'] }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                                <input type="hidden" name="type" value="{{ \App\Models\ReferralCode::TYPE_EVENT_FREE_REG }}">
+                                <p class="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600">
+                                    Event Muslim Vibes — Gratis Biaya Pendaftaran
+                                </p>
                                 @if ($errors->referralCreate->has('type'))
                                     <p class="mt-1 text-xs text-rose-600">{{ $errors->referralCreate->first('type') }}</p>
                                 @endif
@@ -638,7 +544,7 @@
                                        type="number"
                                        min="0"
                                        max="100000000"
-                                       value="{{ $errors->referralCreate->any() ? old('discount_amount') : 500000 }}"
+                                       value="{{ $errors->referralCreate->any() ? old('discount_amount') : 250000 }}"
                                        class="mt-1 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm outline-none transition focus:border-rose-400 focus:ring-2 focus:ring-rose-100">
                                 @if ($errors->referralCreate->has('discount_amount'))
                                     <p class="mt-1 text-xs text-rose-600">{{ $errors->referralCreate->first('discount_amount') }}</p>
@@ -652,7 +558,7 @@
                                        type="number"
                                        min="1"
                                        max="1000"
-                                       value="{{ $errors->referralCreate->any() ? old('max_uses') : 10 }}"
+                                       value="{{ $errors->referralCreate->any() ? old('max_uses') : 1 }}"
                                        class="mt-1 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm outline-none transition focus:border-rose-400 focus:ring-2 focus:ring-rose-100">
                                 @if ($errors->referralCreate->has('max_uses'))
                                     <p class="mt-1 text-xs text-rose-600">{{ $errors->referralCreate->first('max_uses') }}</p>
@@ -668,7 +574,7 @@
                                        type="text"
                                        maxlength="255"
                                        value="{{ $errors->referralCreate->any() ? old('notes') : '' }}"
-                                       placeholder="Contoh: Keluarga Alumni Angkatan 2020"
+                                       placeholder="Contoh: Voucher Event Muslim Vibes Gelombang 2"
                                        class="mt-1 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm outline-none transition placeholder:text-slate-400 focus:border-rose-400 focus:ring-2 focus:ring-rose-100">
                                 @if ($errors->referralCreate->has('notes'))
                                     <p class="mt-1 text-xs text-rose-600">{{ $errors->referralCreate->first('notes') }}</p>
@@ -770,14 +676,10 @@
                             <div class="grid gap-3 sm:grid-cols-2">
                                 <div>
                                     <label for="referral-edit-type" class="block text-xs font-semibold text-slate-700">Jenis Kode</label>
-                                    <select id="referral-edit-type"
-                                            name="type"
-                                            required
-                                            class="mt-1 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm outline-none transition focus:border-rose-400 focus:ring-2 focus:ring-rose-100">
-                                        @foreach (\App\Models\ReferralCode::TYPES as $typeKey => $typeMeta)
-                                            <option value="{{ $typeKey }}">{{ $typeMeta['label'] }}</option>
-                                        @endforeach
-                                    </select>
+                                    <input id="referral-edit-type" type="hidden" name="type" value="{{ \App\Models\ReferralCode::TYPE_EVENT_FREE_REG }}">
+                                    <p class="mt-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600">
+                                        Event Muslim Vibes — Gratis Biaya Pendaftaran
+                                    </p>
                                 </div>
 
                                 <div>
@@ -826,7 +728,7 @@
                                        name="notes"
                                        type="text"
                                        maxlength="255"
-                                       placeholder="Contoh: Keluarga Alumni Angkatan 2020"
+                                       placeholder="Contoh: Voucher Event Muslim Vibes Gelombang 2"
                                        class="mt-1 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm outline-none transition placeholder:text-slate-400 focus:border-rose-400 focus:ring-2 focus:ring-rose-100">
                             </div>
 
@@ -955,7 +857,7 @@
                         const data = await response.json();
                         input.value = data.code || '';
                     } catch (error) {
-                        input.value = 'ALUMNI26-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+                        input.value = 'CI26-' + Math.random().toString(36).slice(2, 6).toUpperCase();
                     } finally {
                         button.disabled = false;
                         button.textContent = 'Generate';

@@ -344,7 +344,6 @@ class FrontController extends Controller
             ],
             'promo_tk' => ['nullable', 'string', Rule::in(array_keys((array) config('spmb.tk.promos', [])))],
             'referral_code' => ['nullable', 'string', 'max:50'],
-            'referral_alumni_names' => ['nullable', 'string', 'max:500'],
             'previous_school' => [
                 'nullable',
                 'string',
@@ -366,7 +365,6 @@ class FrontController extends Controller
             'sub_level.in' => 'Kelompok KB, TK A, atau TK B yang dipilih tidak valid.',
             'promo_tk.in' => 'Promo yang dipilih tidak valid.',
             'referral_code.max' => 'Kode referral terlalu panjang.',
-            'referral_alumni_names.max' => 'Keterangan kakak alumni terlalu panjang.',
             'previous_school.required' => 'Asal sekolah wajib diisi untuk jenjang SMP dan SMA.',
             'payment_proof.mimes' => 'Bukti pembayaran harus berupa file JPG, PNG, atau PDF.',
             'payment_proof.max' => 'Ukuran bukti pembayaran maksimal 6 MB.',
@@ -442,22 +440,15 @@ class FrontController extends Controller
                 ]);
             }
 
-            if ($referral->type === ReferralCode::TYPE_SIBLING_ALUMNI) {
-                $alumniNames = trim((string) ($validated['referral_alumni_names'] ?? ''));
-
-                if ($alumniNames === '') {
-                    throw ValidationException::withMessages([
-                        'referral_alumni_names' => 'Nama 2 kakak alumni KB-TK Islam Cahaya Ilmu wajib diisi untuk kode referral kakak alumni.',
-                    ]);
-                }
-
-                $referralNote = 'Kakak Alumni: '.$alumniNames;
-            } else {
-                $referralNote = $referral->descriptionLabel();
+            if ($referral->type !== ReferralCode::TYPE_EVENT_FREE_REG) {
+                throw ValidationException::withMessages([
+                    'referral_code' => '❌ Kode referral tidak valid atau sudah tidak berlaku.',
+                ]);
             }
 
+            $referralNote = $referral->descriptionLabel();
             $referralKey = $referral->code;
-            $isFreeReferral = $referral->type === ReferralCode::TYPE_EVENT_FREE_REG;
+            $isFreeReferral = true;
 
             // A referral code supersedes the legacy manual promo selection.
             $promoKey = '';

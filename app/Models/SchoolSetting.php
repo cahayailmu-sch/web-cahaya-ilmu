@@ -303,6 +303,47 @@ class SchoolSetting extends Model
     }
 
     /**
+     * Get the active or target school year label, e.g. "2027/2028".
+     *
+     * @param  Collection<string, string|null>|null  $settings
+     */
+    public static function activeSchoolYear(?Collection $settings = null): string
+    {
+        $settings ??= static::pluck('value', 'key');
+        $tahunAjaran = trim((string) ($settings['tahun_ajaran'] ?? ''));
+
+        if (preg_match('/^(\d{4})\s*\/\s*(\d{4})$/', $tahunAjaran, $matches) === 1) {
+            return $matches[1].'/'.$matches[2];
+        }
+
+        $startYear = now()->month >= 7 ? now()->year : now()->year - 1;
+
+        return $startYear.'/'.($startYear + 1);
+    }
+
+    /**
+     * Get the first year of the active/target school year, e.g. 2027.
+     *
+     * @param  Collection<string, string|null>|null  $settings
+     */
+    public static function activeSchoolYearStart(?Collection $settings = null): int
+    {
+        $schoolYear = static::activeSchoolYear($settings);
+
+        return (int) strtok($schoolYear, '/');
+    }
+
+    /**
+     * Get the installment deadline label (June of the school year's first year).
+     *
+     * @param  Collection<string, string|null>|null  $settings
+     */
+    public static function installmentDeadlineLabel(?Collection $settings = null): string
+    {
+        return 'Juni '.static::activeSchoolYearStart($settings);
+    }
+
+    /**
      * Get the hero image URL for a given jenjang slug ('tk', 'sd', 'smp', 'sma').
      *
      * Returns the uploaded custom setting if available, or falls back to

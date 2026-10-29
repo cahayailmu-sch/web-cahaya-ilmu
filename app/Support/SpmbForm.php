@@ -63,6 +63,19 @@ class SpmbForm
     {
         $sections = self::resolve(config('spmb.fee_form', []), $level);
 
+        if ($level === 'TK') {
+            // KB-TK uses a single official fee scheme, so the old
+            // "Pilihan 1/2/3" fee radios are no longer shown.
+            $sections = array_map(function (array $section): array {
+                $section['fields'] = array_values(array_filter(
+                    $section['fields'],
+                    fn (array $field): bool => ! in_array($field['key'], ['pilihan_uang_masuk', 'pilihan_spp'], true),
+                ));
+
+                return $section;
+            }, $sections);
+        }
+
         if ($level !== 'SMA') {
             return $sections;
         }
@@ -125,8 +138,25 @@ class SpmbForm
             }
         }
 
-        $rules['fee.cicilan_bulan'] = ['nullable', 'required_if:fee.cara_bayar,Dicicil', 'integer', 'min:1', 'max:36'];
-        $rules['fee.cicilan_mulai'] = ['nullable', 'required_if:fee.cara_bayar,Dicicil', 'string', 'max:50'];
+        $rules['fee.cicilan_kali'] = [
+            'nullable',
+            'required_if:fee.cara_bayar,Dicicil',
+            'integer',
+            Rule::in(range(2, 12)),
+        ];
+
+        if ($level === 'TK') {
+            $rules['form.has_alumni_siblings'] = [
+                'required',
+                Rule::in(['YA, ADA', 'TIDAK ADA']),
+            ];
+            $rules['form.alumni_sibling_names'] = [
+                'nullable',
+                'string',
+                'max:1000',
+                Rule::requiredIf(fn (): bool => request()->input('form.has_alumni_siblings') === 'YA, ADA'),
+            ];
+        }
 
         $rules['pickup'] = ['nullable', 'array', 'max:'.(int) config('spmb.pickup_rows', 3)];
 
@@ -180,6 +210,8 @@ class SpmbForm
 
         if ($level === 'TK') {
             $attributes['pas_foto_3x4'] = 'Pas Foto Ananda Ukuran 3×4';
+            $attributes['form.has_alumni_siblings'] = 'Status saudara kandung alumni TK Islam Cahaya Ilmu';
+            $attributes['form.alumni_sibling_names'] = 'Nama saudara kandung yang merupakan alumni TK Islam Cahaya Ilmu';
         }
 
         foreach (array_keys(config('spmb.agreements', [])) as $index => $key) {

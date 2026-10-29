@@ -647,11 +647,14 @@
 
   <div class="section-heading">Rincian Kesanggupan Biaya Pendidikan Yang Disetujui</div>
   @php
+    $isTkDocument = $registration->level === 'TK';
     $pilihanUangMasuk = (int) ($registration->formValue('pilihan_uang_masuk', 1));
     $nominalUangMasuk = $fees['uang_masuk'][$pilihanUangMasuk] ?? 0;
     $pilihanSpp = (int) ($registration->formValue('pilihan_spp', 1));
     $nominalSpp = $fees['spp'][$pilihanSpp] ?? 0;
     $caraBayar = $registration->formValue('cara_bayar', 'Cash');
+    $jumlahCicilan = $registration->installmentCount();
+    $batasPelunasan = \App\Models\SchoolSetting::installmentDeadlineLabel();
   @endphp
 
   <table class="bordered-table" style="margin-bottom: 12px;">
@@ -664,18 +667,18 @@
     </thead>
     <tbody>
       <tr>
-        <td><strong>Uang Masuk / Sarana &amp; Gedung</strong></td>
-        <td>Pilihan {{ $pilihanUangMasuk }}</td>
+        <td><strong>{{ $isTkDocument ? 'Biaya Masuk (Uang Pangkal + Perlengkapan + Pertahun)' : 'Uang Masuk / Sarana & Gedung' }}</strong></td>
+        <td>{{ $isTkDocument ? 'Biaya Resmi' : 'Pilihan '.$pilihanUangMasuk }}</td>
         <td><strong>Rp {{ number_format($nominalUangMasuk, 0, ',', '.') }}</strong></td>
       </tr>
       <tr>
         <td><strong>Iuran SPP Bulanan</strong></td>
-        <td>Pilihan {{ $pilihanSpp }}</td>
+        <td>{{ $isTkDocument ? 'Biaya Resmi' : 'Pilihan '.$pilihanSpp }}</td>
         <td><strong>Rp {{ number_format($nominalSpp, 0, ',', '.') }}</strong> / bulan</td>
       </tr>
       @if (! empty($fees['konsumsi']))
         <tr>
-          <td><strong>+ Konsumsi : Iuran Makan Siang ({{ $registration->level }})</strong></td>
+          <td><strong>+ Konsumsi : {{ $isTkDocument ? 'Snack' : 'Iuran Makan Siang' }} ({{ $registration->level }})</strong></td>
           <td>Wajib Siswa {{ $registration->level }}</td>
           <td><strong>Rp {{ number_format($fees['konsumsi'], 0, ',', '.') }}</strong> / bulan</td>
         </tr>
@@ -685,7 +688,7 @@
         <td colspan="2">
           <strong>{{ $caraBayar }}</strong>
           @if ($caraBayar === 'Dicicil')
-            (Selama {{ $fee['cicilan_bulan'] ?? '-' }} bulan, mulai: {{ $fee['cicilan_mulai'] ?? '-' }})
+            (Sebanyak {{ $jumlahCicilan ?? '-' }} kali, batas akhir pelunasan {{ $batasPelunasan }})
           @else
             (Lunas pada saat daftar ulang)
           @endif
@@ -705,6 +708,23 @@
       @endif
     </tbody>
   </table>
+
+  @if ($isTkDocument)
+    <table class="data-table compact-table" style="margin-bottom: 10px;">
+      <tr>
+        <td class="label-col">Memiliki 2 Saudara Kandung Alumni TK Islam Cahaya Ilmu</td>
+        <td class="sep-col">:</td>
+        <td class="val-col"><strong>{{ $registration->hasAlumniSiblings() ? 'YA, ADA' : 'TIDAK ADA' }}</strong></td>
+      </tr>
+      @if ($registration->hasAlumniSiblings())
+        <tr>
+          <td class="label-col">Nama Saudara Kandung Alumni</td>
+          <td class="sep-col">:</td>
+          <td class="val-col">{{ $registration->alumniSiblingNames() ?: '-' }}</td>
+        </tr>
+      @endif
+    </table>
+  @endif
 
   <table class="data-table compact-table" style="margin-bottom: 10px;">
     <tr>

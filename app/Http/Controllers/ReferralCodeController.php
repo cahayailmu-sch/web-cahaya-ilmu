@@ -58,7 +58,13 @@ class ReferralCodeController extends Controller
             );
         }
 
-        $isEventCode = $referral->type === ReferralCode::TYPE_EVENT_FREE_REG;
+        if ($referral->type !== ReferralCode::TYPE_EVENT_FREE_REG) {
+            return $this->invalidResponse(
+                $referral->code,
+                'inactive',
+                'Kode referral ini sudah tidak berlaku. Kode referral kini hanya untuk voucher Event Muslim Vibes.',
+            );
+        }
 
         return response()->json([
             'valid' => true,
@@ -67,12 +73,9 @@ class ReferralCodeController extends Controller
             'type_label' => $referral->typeLabel(),
             'discount_amount' => $referral->discount_amount,
             'discount_display' => $referral->discountDisplay(),
-            'waives_registration_fee' => $isEventCode,
-            'requires_alumni_names' => $referral->type === ReferralCode::TYPE_SIBLING_ALUMNI,
+            'waives_registration_fee' => true,
             'remaining_uses' => max(0, $maxUses - $usedCount),
-            'message' => $isEventCode
-                ? '✅ Kode Event Muslim Vibes Valid! Anda mendapatkan GRATIS Biaya Pendaftaran sebesar Rp 250.000.'
-                : '✅ Kode Referral Kakak Alumni Valid! Anda berhak mendapatkan Potongan Harga sebesar Rp 500.000 (Min. 2 Kakak Alumni KB-TK).',
+            'message' => '✅ Kode Event Muslim Vibes Valid! Anda mendapatkan GRATIS Biaya Pendaftaran sebesar Rp 250.000.',
         ]);
     }
 

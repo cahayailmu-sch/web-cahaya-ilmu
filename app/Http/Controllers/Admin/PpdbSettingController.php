@@ -47,9 +47,6 @@ class PpdbSettingController extends Controller
             'eventReferralCodes' => $referralCodes
                 ->where('type', ReferralCode::TYPE_EVENT_FREE_REG)
                 ->values(),
-            'siblingReferralCodes' => $referralCodes
-                ->where('type', ReferralCode::TYPE_SIBLING_ALUMNI)
-                ->values(),
         ]);
     }
 

@@ -63,7 +63,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::put('ppdb-settings', [PpdbSettingController::class, 'update'])->name('ppdb-settings.update');
         Route::get('referral-codes/generate', [AdminReferralCodeController::class, 'generate'])->name('referral-codes.generate');
         Route::post('referral-codes', [AdminReferralCodeController::class, 'store'])->name('referral-codes.store');
-        Route::patch('referral-codes/{referralCode}/toggle', [AdminReferralCodeController::class, 'toggle'])->name('referral-codes.toggle');
         Route::delete('referral-codes/{referralCode}', [AdminReferralCodeController::class, 'destroy'])->name('referral-codes.destroy');
         Route::post('referrals/reset-event-codes', [AdminReferralCodeController::class, 'resetEventCodes'])->name('referrals.reset-event');
         Route::match(['put', 'patch'], 'referrals/{referralCode}', [AdminReferralCodeController::class, 'update'])->name('referrals.update');

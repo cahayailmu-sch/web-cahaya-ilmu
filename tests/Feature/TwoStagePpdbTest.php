@@ -34,7 +34,7 @@ class TwoStagePpdbTest extends TestCase
         ];
 
         foreach (array_merge($defaults, $overrides) as $key => $value) {
-            SchoolSetting::create(['key' => $key, 'value' => (string) $value]);
+            SchoolSetting::updateOrCreate(['key' => $key], ['value' => (string) $value]);
         }
     }
 
@@ -400,6 +400,82 @@ class TwoStagePpdbTest extends TestCase
         $this->assertSame(PpdbRegistration::STATUS_COMPLETED, $refreshed->status);
         $this->assertSame('Fatih', $refreshed->full_form_data['nama_panggilan']);
         $this->assertEmpty($refreshed->full_form_data['penjemput']);
+    }
+
+    public function test_tk_stage_two_stores_alumni_siblings_and_installment_count(): void
+    {
+        Storage::fake('public');
+        $this->createSettings([
+            'ppdb_status_tk' => 'Buka',
+            'biaya_tk' => '250000',
+            'bank_tk' => 'Bank Syariah Indonesia (BSI)',
+            'rek_tk' => '3115917772',
+            'rek_nama_tk' => 'TK Islam Cahaya Ilmu',
+        ]);
+
+        $this->post(route('ppdb.store'), $this->stageOneData([
+            'level' => 'TK',
+            'sub_level' => 'TK A',
+            'birth_date' => '2022-06-01',
+        ]))->assertSessionHasNoErrors();
+
+        $registration = PpdbRegistration::where('full_name', 'Fatih Al-Faruq')->firstOrFail();
+        $registration->update([
+            'status' => PpdbRegistration::STATUS_VERIFIED,
+            'verified_at' => now(),
+        ]);
+
+        $data = $this->stageTwoData();
+        $data['form']['has_alumni_siblings'] = 'YA, ADA';
+        $data['form']['alumni_sibling_names'] = 'Aisyah, Fatimah';
+        unset($data['fee']['pilihan_uang_masuk'], $data['fee']['pilihan_spp']);
+        $data['fee']['cara_bayar'] = 'Dicicil';
+        $data['fee']['cicilan_kali'] = '6';
+        $data['pas_foto_3x4'] = UploadedFile::fake()->image('pas-foto.jpg');
+
+        $this->post(route('spmb.full-form.store', $registration->registration_code), $data)
+            ->assertSessionHasNoErrors();
+
+        $refreshed = $registration->fresh();
+
+        $this->assertTrue($refreshed->has_alumni_siblings);
+        $this->assertSame('Aisyah, Fatimah', $refreshed->alumni_sibling_names);
+        $this->assertSame(6, $refreshed->installmentCount());
+        $this->assertSame('Juni 2026', SchoolSetting::installmentDeadlineLabel());
+        $this->assertArrayNotHasKey('pilihan_uang_masuk', $refreshed->fee_agreement_data);
+    }
+
+    public function test_tk_stage_two_requires_alumni_names_when_answered_yes(): void
+    {
+        Storage::fake('public');
+        $this->createSettings([
+            'ppdb_status_tk' => 'Buka',
+            'biaya_tk' => '250000',
+            'bank_tk' => 'Bank Syariah Indonesia (BSI)',
+            'rek_tk' => '3115917772',
+            'rek_nama_tk' => 'TK Islam Cahaya Ilmu',
+        ]);
+
+        $this->post(route('ppdb.store'), $this->stageOneData([
+            'level' => 'TK',
+            'sub_level' => 'TK A',
+            'birth_date' => '2022-06-01',
+        ]))->assertSessionHasNoErrors();
+
+        $registration = PpdbRegistration::where('full_name', 'Fatih Al-Faruq')->firstOrFail();
+        $registration->update([
+            'status' => PpdbRegistration::STATUS_VERIFIED,
+            'verified_at' => now(),
+        ]);
+
+        $data = $this->stageTwoData();
+        $data['form']['has_alumni_siblings'] = 'YA, ADA';
+        $data['form']['alumni_sibling_names'] = '';
+        unset($data['fee']['pilihan_uang_masuk'], $data['fee']['pilihan_spp']);
+        $data['pas_foto_3x4'] = UploadedFile::fake()->image('pas-foto.jpg');
+
+        $this->post(route('spmb.full-form.store', $registration->registration_code), $data)
+            ->assertSessionHasErrors('form.alumni_sibling_names');
     }
 
     public function test_stage_two_handles_optional_file_uploads(): void

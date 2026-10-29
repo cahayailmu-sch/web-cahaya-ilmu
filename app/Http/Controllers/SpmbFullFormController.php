@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PpdbRegistration;
+use App\Models\SchoolSetting;
 use App\Services\ImageCompressor;
 use App\Support\ActivityLogger;
 use App\Support\SpmbDocument;
@@ -35,6 +36,8 @@ class SpmbFullFormController extends Controller
             'feeSections' => SpmbForm::feeSections($registration->level),
             'agreements' => SpmbForm::agreements($registration->level),
             'fees' => $registration->feeOptions(),
+            'spmbTk' => config('spmb.tk'),
+            'installmentDeadline' => SchoolSetting::installmentDeadlineLabel(),
             'pickupRows' => (int) config('spmb.pickup_rows', 3),
             'pickupColumns' => config('spmb.pickup_columns', []),
         ]);
@@ -93,6 +96,16 @@ class SpmbFullFormController extends Controller
             ? array_keys($agreementInput)
             : array_keys(config('spmb.agreements', []));
 
+        $hasAlumniSiblings = null;
+        $alumniSiblingNames = null;
+
+        if ($registration->level === 'TK') {
+            $hasAlumniSiblings = ($validated['form']['has_alumni_siblings'] ?? $formInput['has_alumni_siblings'] ?? null) === 'YA, ADA';
+            $alumniSiblingNames = $hasAlumniSiblings
+                ? trim((string) ($validated['form']['alumni_sibling_names'] ?? $formInput['alumni_sibling_names'] ?? ''))
+                : null;
+        }
+
         $registration->update([
             'full_form_data' => array_merge(
                 $formInput,
@@ -109,6 +122,8 @@ class SpmbFullFormController extends Controller
                     'signed_at' => now()->toDateString(),
                 ],
             ),
+            'has_alumni_siblings' => $hasAlumniSiblings,
+            'alumni_sibling_names' => $alumniSiblingNames,
             'status' => PpdbRegistration::STATUS_COMPLETED,
             'completed_at' => now(),
         ]);

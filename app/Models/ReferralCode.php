@@ -10,10 +10,14 @@ class ReferralCode extends Model
 {
     public const TYPE_EVENT_FREE_REG = 'event_free_reg';
 
+    /**
+     * Legacy sibling/alumni type. Kept only so old rows still resolve their
+     * label; sibling codes are no longer offered to the public.
+     */
     public const TYPE_SIBLING_ALUMNI = 'sibling_alumni';
 
     /**
-     * Human-readable metadata for every referral type.
+     * Human-readable metadata for every active referral type.
      *
      * @var array<string, array{label: string, short_label: string, discount_amount: int}>
      */
@@ -24,8 +28,8 @@ class ReferralCode extends Model
             'discount_amount' => 250000,
         ],
         self::TYPE_SIBLING_ALUMNI => [
-            'label' => 'Kakak Alumni — Potongan Rp 500.000',
-            'short_label' => 'Potongan Kakak Alumni',
+            'label' => 'Kakak Alumni (Tidak Berlaku)',
+            'short_label' => 'Kakak Alumni',
             'discount_amount' => 500000,
         ],
     ];
@@ -204,15 +208,5 @@ class ReferralCode extends Model
     public function scopeEventFree(Builder $query): void
     {
         $query->where('type', self::TYPE_EVENT_FREE_REG);
-    }
-
-    /**
-     * Scope a query to sibling / alumni codes.
-     *
-     * @param  Builder<ReferralCode>  $query
-     */
-    public function scopeSibling(Builder $query): void
-    {
-        $query->where('type', self::TYPE_SIBLING_ALUMNI);
     }
 }

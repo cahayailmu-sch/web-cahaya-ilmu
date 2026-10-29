@@ -633,8 +633,6 @@ const ADMIN_WHATSAPP = Object.freeze({
     const referralButton = $('#check-referral');
     const referralButtonText = $('#check-referral-text');
     const referralStatus = $('#referral-status');
-    const referralAlumniWrap = $('#referral-alumni-wrap');
-    const referralAlumniInput = $('#referral-alumni-names');
     const paymentProofWrap = $('#payment-proof-wrap');
     const referralEndpoint = (() => {
       const configured = String(window.CI_REFERRAL_ENDPOINT || '').trim();
@@ -779,26 +777,12 @@ const ADMIN_WHATSAPP = Object.freeze({
 
     const clearReferralState = ({ clearStatus = true } = {}) => {
       referralState = null;
-      referralAlumniWrap?.classList.add('hidden');
-
-      if (referralAlumniInput) {
-        referralAlumniInput.value = '';
-        referralAlumniInput.required = false;
-        referralAlumniInput.setAttribute('aria-required', 'false');
-      }
 
       if (clearStatus) setReferralStatus('info', '');
     };
 
     const applyReferralState = (data) => {
       referralState = { ...data, code: normalizedReferralCode() };
-      const requiresAlumniNames = Boolean(data.requires_alumni_names);
-
-      referralAlumniWrap?.classList.toggle('hidden', !requiresAlumniNames);
-      if (referralAlumniInput) {
-        referralAlumniInput.required = requiresAlumniNames;
-        referralAlumniInput.setAttribute('aria-required', String(requiresAlumniNames));
-      }
 
       setReferralStatus('success', data.message);
       updateRekeningInfo();
@@ -1420,14 +1404,6 @@ const ADMIN_WHATSAPP = Object.freeze({
           setReferralStatus('error', 'Klik tombol Cek Kode untuk memvalidasi kode referral sebelum mengirim pendaftaran.');
           referralWrap?.scrollIntoView({ behavior: 'smooth', block: 'center' });
           referralInput?.focus({ preventScroll: true });
-          return;
-        }
-
-        if (referralState.requires_alumni_names && referralAlumniInput && referralAlumniInput.value.trim() === '') {
-          event.preventDefault();
-          referralAlumniInput.reportValidity();
-          referralAlumniWrap?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          referralAlumniInput.focus({ preventScroll: true });
           return;
         }
       }

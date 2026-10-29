@@ -240,6 +240,69 @@
           </div>
         </div>
 
+        @if ($registration->level === 'TK')
+          @php
+            $alumniChoice = old(
+              'form.has_alumni_siblings',
+              $registration->formValue('has_alumni_siblings')
+                ?? ($registration->has_alumni_siblings ? 'YA, ADA' : null)
+            );
+            $alumniNames = old('form.alumni_sibling_names', $registration->alumniSiblingNames());
+          @endphp
+          <!-- Data Saudara Kandung Alumni (Khusus KB-TK) -->
+          <div class="rounded-3xl border border-gold-200 bg-gradient-to-br from-gold-50/70 via-white to-brand-50/30 p-6 sm:p-8 shadow-sm space-y-5">
+            <div class="border-b border-gold-100 pb-3">
+              <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 flex items-center gap-2">
+                <span class="w-2.5 h-6 rounded-full bg-gold-500"></span>
+                Data Saudara Kandung Alumni TK Islam Cahaya Ilmu
+              </h2>
+              <p class="mt-1 text-xs sm:text-sm text-slate-500">
+                Khusus pendaftar jenjang KB-TK. Informasi ini digunakan untuk verifikasi data keluarga alumni.
+              </p>
+            </div>
+
+            <div class="space-y-2">
+              <p class="text-xs sm:text-sm font-bold text-slate-800">
+                Apakah memiliki 2 saudara kandung alumni TK Islam Cahaya Ilmu? <span class="text-rose-500 font-bold">*</span>
+              </p>
+              <div class="grid gap-2 sm:grid-cols-2 pt-1">
+                @foreach (['YA, ADA' => 'YA, ADA', 'TIDAK ADA' => 'TIDAK ADA'] as $alumniValue => $alumniLabel)
+                  <label class="flex items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 cursor-pointer transition hover:bg-slate-50 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50/40">
+                    <input
+                      type="radio"
+                      name="form[has_alumni_siblings]"
+                      value="{{ $alumniValue }}"
+                      data-alumni-siblings
+                      @checked((string) $alumniChoice === (string) $alumniValue)
+                      class="size-4 text-brand-600 focus:ring-brand-500 border-slate-300"
+                    >
+                    <span class="text-xs sm:text-sm font-semibold text-slate-800">{{ $alumniLabel }}</span>
+                  </label>
+                @endforeach
+              </div>
+              @error('form.has_alumni_siblings')
+                <p class="text-xs text-rose-600">{{ $message }}</p>
+              @enderror
+            </div>
+
+            <div id="alumni-siblings-names-wrap" class="space-y-1.5 {{ $alumniChoice === 'YA, ADA' ? '' : 'hidden' }}">
+              <label for="alumni_sibling_names" class="block text-xs sm:text-sm font-bold text-slate-800">
+                Nama saudara kandung yang merupakan alumni TK Islam Cahaya Ilmu <span class="text-rose-500 font-bold">*</span>
+              </label>
+              <textarea
+                id="alumni_sibling_names"
+                name="form[alumni_sibling_names]"
+                rows="3"
+                placeholder="Tuliskan nama saudara kandung alumni TK Islam Cahaya Ilmu..."
+                class="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100"
+              >{{ $alumniNames }}</textarea>
+              @error('form.alumni_sibling_names')
+                <p class="text-xs text-rose-600">{{ $message }}</p>
+              @enderror
+            </div>
+          </div>
+        @endif
+
         <!-- Biaya Pendidikan & Surat Kesanggupan Biaya (Bagian K, L, M) -->
         <div class="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-8">
           <div class="border-b border-slate-100 pb-3">
@@ -248,9 +311,13 @@
               K. Pilihan Biaya Pendidikan {{ $registration->schoolName() }}
             </h2>
             <p class="mt-1 text-xs sm:text-sm text-slate-500">
-              Berikut rincian pilihan biaya pendidikan. Silakan tentukan opsi yang paling sesuai dengan kemampuan keluarga Anda.
+              @if ($registration->level === 'TK')
+                Berikut rincian resmi biaya pendidikan {{ $spmbTk['name'] ?? 'KB-TK Islam Cahaya Ilmu' }} Tahun Ajaran {{ $spmbTk['school_year'] ?? \App\Models\SchoolSetting::activeSchoolYear() }}.
+              @else
+                Berikut rincian pilihan biaya pendidikan. Silakan tentukan opsi yang paling sesuai dengan kemampuan keluarga Anda.
+              @endif
             </p>
-            @if (! empty($fees['konsumsi']))
+            @if ($registration->level !== 'TK' && ! empty($fees['konsumsi']))
               <div class="mt-4 flex items-start gap-2.5 rounded-2xl border border-gold-200 bg-gold-50/70 p-3.5 text-xs sm:text-sm text-slate-700">
                 <i class="fa-solid fa-circle-info mt-0.5 text-gold-600" aria-hidden="true"></i>
                 <p>
@@ -261,36 +328,40 @@
             @endif
           </div>
 
-          <!-- Tabel Ringkasan Pilihan Biaya -->
-          <div class="grid sm:grid-cols-3 gap-4">
-            @for ($p = 1; $p <= 3; $p++)
-              <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 space-y-2">
-                <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-brand-100 text-brand-800">
-                  Pilihan {{ $p }}
-                </span>
-                <div class="pt-1">
-                  <p class="text-[11px] text-slate-400 font-semibold uppercase">Uang Masuk / Sarana</p>
-                  <p class="text-base font-extrabold text-slate-900">
-                    Rp {{ number_format($fees['uang_masuk'][$p] ?? 0, 0, ',', '.') }}
-                  </p>
-                </div>
-                <div>
-                  <p class="text-[11px] text-slate-400 font-semibold uppercase">SPP Bulanan</p>
-                  <p class="text-base font-extrabold text-brand-700">
-                    Rp {{ number_format($fees['spp'][$p] ?? 0, 0, ',', '.') }} <span class="text-[11px] font-normal text-slate-500">/ bln</span>
-                  </p>
-                </div>
-                @if (! empty($fees['konsumsi']))
-                  <div class="pt-2 border-t border-slate-200">
-                    <p class="text-[11px] text-slate-400 font-semibold uppercase">Konsumsi / Makan Siang</p>
-                    <p class="text-xs font-extrabold text-brand-700">
-                      + Konsumsi : Rp {{ number_format($fees['konsumsi'], 0, ',', '.') }} / bulan
+          @if ($registration->level === 'TK')
+            @include('partials.spmb-tk-fee-detail', ['spmbTk' => $spmbTk, 'installmentDeadline' => $installmentDeadline])
+          @else
+            <!-- Tabel Ringkasan Pilihan Biaya -->
+            <div class="grid sm:grid-cols-3 gap-4">
+              @for ($p = 1; $p <= 3; $p++)
+                <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 space-y-2">
+                  <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-brand-100 text-brand-800">
+                    Pilihan {{ $p }}
+                  </span>
+                  <div class="pt-1">
+                    <p class="text-[11px] text-slate-400 font-semibold uppercase">Uang Masuk / Sarana</p>
+                    <p class="text-base font-extrabold text-slate-900">
+                      Rp {{ number_format($fees['uang_masuk'][$p] ?? 0, 0, ',', '.') }}
                     </p>
                   </div>
-                @endif
-              </div>
-            @endfor
-          </div>
+                  <div>
+                    <p class="text-[11px] text-slate-400 font-semibold uppercase">SPP Bulanan</p>
+                    <p class="text-base font-extrabold text-brand-700">
+                      Rp {{ number_format($fees['spp'][$p] ?? 0, 0, ',', '.') }} <span class="text-[11px] font-normal text-slate-500">/ bln</span>
+                    </p>
+                  </div>
+                  @if (! empty($fees['konsumsi']))
+                    <div class="pt-2 border-t border-slate-200">
+                      <p class="text-[11px] text-slate-400 font-semibold uppercase">Konsumsi / Makan Siang</p>
+                      <p class="text-xs font-extrabold text-brand-700">
+                        + Konsumsi : Rp {{ number_format($fees['konsumsi'], 0, ',', '.') }} / bulan
+                      </p>
+                    </div>
+                  @endif
+                </div>
+              @endfor
+            </div>
+          @endif
 
           <!-- Form Fields Biaya Pendidikan -->
           <div class="space-y-6 pt-4 border-t border-slate-100">
@@ -336,6 +407,17 @@
                             </label>
                           @endforeach
                         </div>
+                      @elseif ($field['type'] === 'select')
+                        <select
+                          id="fee_{{ $field['key'] }}"
+                          name="{{ $fieldName }}"
+                          class="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-3 text-xs sm:text-sm text-slate-900 outline-none transition focus:border-brand-500 focus:bg-white focus:ring-2 focus:ring-brand-100"
+                        >
+                          <option value="">-- Pilih Salah Satu --</option>
+                          @foreach ($field['options'] ?? [] as $optKey => $optVal)
+                            <option value="{{ $optKey }}" @selected((string) $oldVal === (string) $optKey)>{{ $optVal }}</option>
+                          @endforeach
+                        </select>
                       @else
                         <input
                           type="{{ $field['type'] }}"
@@ -355,6 +437,14 @@
                 </div>
               </div>
             @endforeach
+
+            <div class="flex items-start gap-2.5 rounded-2xl border border-brand-200 bg-brand-50/70 p-3.5 text-xs sm:text-sm text-slate-700">
+              <i class="fa-regular fa-calendar-check mt-0.5 text-brand-600" aria-hidden="true"></i>
+              <p>
+                <strong class="font-extrabold text-slate-900">Batas akhir pelunasan cicilan uang pangkal: {{ $installmentDeadline }}.</strong>
+                <span class="block text-[11px] sm:text-xs text-slate-500">Jatuh tempo mengikuti Tahun Ajaran aktif dan dihitung otomatis oleh sistem.</span>
+              </p>
+            </div>
           </div>
         </div>
 
@@ -564,6 +654,32 @@
           }
         });
       }
+
+      const alumniRadios = form.querySelectorAll('[data-alumni-siblings]');
+      const alumniNamesWrap = document.getElementById('alumni-siblings-names-wrap');
+      const alumniNamesInput = document.getElementById('alumni_sibling_names');
+
+      const syncAlumniSiblings = function () {
+        if (!alumniNamesWrap || !alumniNamesInput) {
+          return;
+        }
+
+        const selected = form.querySelector('[data-alumni-siblings]:checked');
+
+        if (selected && selected.value === 'YA, ADA') {
+          alumniNamesWrap.classList.remove('hidden');
+          alumniNamesInput.setAttribute('required', 'required');
+        } else {
+          alumniNamesWrap.classList.add('hidden');
+          alumniNamesInput.removeAttribute('required');
+        }
+      };
+
+      alumniRadios.forEach(function (radio) {
+        radio.addEventListener('change', syncAlumniSiblings);
+      });
+
+      syncAlumniSiblings();
 
       form.addEventListener('submit', function () {
         if (submitBtn) {

@@ -42,6 +42,8 @@ class PpdbRegistration extends Model
         'discount_amount',
         'final_fee',
         'referral_note',
+        'has_alumni_siblings',
+        'alumni_sibling_names',
         'status',
         'full_form_data',
         'fee_agreement_data',
@@ -69,6 +71,7 @@ class PpdbRegistration extends Model
             'birth_date' => 'date',
             'final_fee' => 'integer',
             'discount_amount' => 'integer',
+            'has_alumni_siblings' => 'boolean',
             'full_form_data' => 'array',
             'fee_agreement_data' => 'array',
             'verified_at' => 'datetime',
@@ -213,6 +216,42 @@ class PpdbRegistration extends Model
     public function feeOptions(): array
     {
         return config("spmb.fees.{$this->level}", config('spmb.fees.SD'));
+    }
+
+    /**
+     * Get the number of installments chosen for the entrance fee.
+     */
+    public function installmentCount(): ?int
+    {
+        $value = $this->formValue('cicilan_kali') ?? $this->formValue('cicilan_bulan');
+
+        return filled($value) ? (int) $value : null;
+    }
+
+    /**
+     * Determine whether the registrant has two alumni siblings at KB-TK.
+     */
+    public function hasAlumniSiblings(): bool
+    {
+        if ($this->has_alumni_siblings !== null) {
+            return (bool) $this->has_alumni_siblings;
+        }
+
+        return $this->formValue('has_alumni_siblings') === 'YA, ADA';
+    }
+
+    /**
+     * Get the names of the alumni siblings submitted by the registrant.
+     */
+    public function alumniSiblingNames(): ?string
+    {
+        if (filled($this->alumni_sibling_names)) {
+            return (string) $this->alumni_sibling_names;
+        }
+
+        $names = $this->formValue('alumni_sibling_names');
+
+        return filled($names) ? (string) $names : null;
     }
 
     /**

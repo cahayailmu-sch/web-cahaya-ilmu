@@ -63,10 +63,10 @@ class FrontPageTest extends TestCase
         $settings = array_merge($settings, $overrides);
 
         foreach ($settings as $key => $value) {
-            SchoolSetting::create([
-                'key' => $key,
-                'value' => $value,
-            ]);
+            SchoolSetting::updateOrCreate(
+                ['key' => $key],
+                ['value' => (string) $value],
+            );
         }
     }
 
@@ -601,7 +601,9 @@ class FrontPageTest extends TestCase
             ->assertSee('name="birth_date"', false)
             ->assertSee('name="payment_proof"', false)
             ->assertSee('name="referral_code"', false)
-            ->assertSee('name="referral_alumni_names"', false)
+            ->assertDontSee('name="referral_alumni_names"', false)
+            ->assertDontSee('Kakak Alumni', false)
+            ->assertDontSee('referral-alumni-wrap', false)
             ->assertDontSee('name="referral_note"', false)
             ->assertSee('id="check-referral"', false)
             ->assertSee('window.CI_REFERRAL_ENDPOINT', false)
@@ -897,26 +899,32 @@ class FrontPageTest extends TestCase
         $this->assertSame('muslim_vibes', $registration->referral_code);
     }
 
-    public function test_tk_alumni_promo_records_discount(): void
+    public function test_tk_fee_detail_matches_official_school_year_2027_2028_scheme(): void
     {
-        Storage::fake('public');
-
         $this->createSettings([
             'tahun_ajaran' => '2027/2028',
         ]);
 
-        $this->post(route('ppdb.store'), $this->registrationData([
-            'level' => 'TK',
-            'sub_level' => 'TK B',
-            'birth_date' => '2021-06-01',
-            'promo_tk' => 'alumni',
-        ]))->assertSessionHasNoErrors();
-
-        $registration = PpdbRegistration::firstOrFail();
-
-        $this->assertSame(250000, $registration->final_fee);
-        $this->assertSame(500000, $registration->discount_amount);
-        $this->assertSame('alumni', $registration->referral_code);
+        foreach ([route('ppdb'), route('jenjang.show', 'tk')] as $url) {
+            $this->get($url)
+                ->assertOk()
+                ->assertSee('Rp 250.000')
+                ->assertSee('Rp 4.500.000')
+                ->assertSee('Rp 1.600.000')
+                ->assertSee('Rp 1.900.000')
+                ->assertSee('Rp 8.000.000')
+                ->assertSee('Rp 550.000')
+                ->assertSee('Rp 150.000')
+                ->assertSee('Rp 700.000')
+                ->assertSee('Seragam (4 Stel)')
+                ->assertSee('Buku Jurnal 7 KAIH')
+                ->assertSee('Total biaya masuk belum termasuk SPP dan konsumsi.')
+                ->assertSee('Juni 2027')
+                ->assertDontSee('Rp 10.000.000')
+                ->assertDontSee('Rp 11.000.000')
+                ->assertDontSee('Rp 12.000.000')
+                ->assertDontSee('Rp 170.000');
+        }
     }
 
     public function test_kb_tk_information_is_displayed_on_ppdb_and_jenjang_pages(): void

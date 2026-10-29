@@ -138,6 +138,10 @@
           </div>
         </div>
 
+        <div class="mt-5">
+          @include('partials.spmb-tk-fee-detail', ['spmbTk' => $spmbTk])
+        </div>
+
         <div class="mt-5 grid gap-5 lg:grid-cols-2">
           <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <h3 class="flex items-center gap-2 text-sm font-extrabold text-slate-900">

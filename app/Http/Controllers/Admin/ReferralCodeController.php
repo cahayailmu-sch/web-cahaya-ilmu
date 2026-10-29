@@ -14,24 +14,18 @@ use Illuminate\Validation\Rule;
 class ReferralCodeController extends Controller
 {
     /**
-     * Create a new referral code (event or sibling) from the SPMB settings page.
+     * Create a new Event Muslim Vibes referral code from the SPMB settings page.
      */
     public function store(Request $request): RedirectResponse
     {
         $this->ensureCanManage();
 
-        $type = (string) $request->input('type', ReferralCode::TYPE_SIBLING_ALUMNI);
-
-        if (! array_key_exists($type, ReferralCode::TYPES)) {
-            $type = ReferralCode::TYPE_SIBLING_ALUMNI;
-        }
-
         $request->merge([
             'code' => ReferralCode::normalize((string) $request->input('code')),
-            'type' => $type,
+            'type' => ReferralCode::TYPE_EVENT_FREE_REG,
             'discount_amount' => $request->filled('discount_amount')
                 ? $request->input('discount_amount')
-                : ReferralCode::TYPES[$type]['discount_amount'],
+                : ReferralCode::TYPES[ReferralCode::TYPE_EVENT_FREE_REG]['discount_amount'],
             'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
         ]);
 
@@ -43,7 +37,7 @@ class ReferralCodeController extends Controller
                 'regex:/^[A-Z0-9-]+$/',
                 Rule::unique('referral_codes', 'code'),
             ],
-            'type' => ['required', Rule::in(array_keys(ReferralCode::TYPES))],
+            'type' => ['required', Rule::in([ReferralCode::TYPE_EVENT_FREE_REG])],
             'discount_amount' => ['required', 'integer', 'min:0', 'max:100000000'],
             'max_uses' => ['required', 'integer', 'min:1', 'max:1000'],
             'notes' => ['nullable', 'string', 'max:255'],
@@ -85,44 +79,21 @@ class ReferralCodeController extends Controller
     }
 
     /**
-     * Generate a unique sibling referral code for the admin form.
+     * Generate a unique Event Muslim Vibes referral code for the admin form.
      */
     public function generate(): JsonResponse
     {
         $this->ensureCanManage();
 
         do {
-            $code = 'ALUMNI26-'.Str::upper(Str::random(4));
+            $code = 'CI26-'.Str::upper(Str::random(4));
         } while (ReferralCode::query()->where('code', $code)->exists());
 
         return response()->json(['code' => $code]);
     }
 
     /**
-     * Activate or deactivate a sibling referral code.
-     */
-    public function toggle(ReferralCode $referralCode): RedirectResponse
-    {
-        $this->ensureCanManage();
-
-        if ($referralCode->type !== ReferralCode::TYPE_SIBLING_ALUMNI) {
-            return back()->with('error', 'Kode Event Muslim Vibes tidak dapat diubah statusnya.');
-        }
-
-        $referralCode->update(['is_active' => ! $referralCode->is_active]);
-
-        ActivityLogger::log(
-            'update',
-            'Pengaturan SPMB',
-            "Mengubah status kode referral {$referralCode->code} menjadi ".($referralCode->is_active ? 'aktif' : 'nonaktif').'.',
-            ['after' => ['code' => $referralCode->code, 'is_active' => $referralCode->is_active]],
-        );
-
-        return back()->with('success', "Status kode {$referralCode->code} berhasil diperbarui.");
-    }
-
-    /**
-     * Delete a referral code (event or sibling).
+     * Delete a referral code.
      */
     public function destroy(ReferralCode $referralCode): RedirectResponse
     {
@@ -154,7 +125,7 @@ class ReferralCodeController extends Controller
     }
 
     /**
-     * Update an existing referral code (event or sibling) from the admin panel.
+     * Update an existing referral code from the admin panel.
      */
     public function update(Request $request, ReferralCode $referralCode): RedirectResponse
     {
@@ -182,7 +153,7 @@ class ReferralCodeController extends Controller
                 'regex:/^[A-Z0-9-]+$/',
                 Rule::unique('referral_codes', 'code')->ignore($referralCode->getKey()),
             ],
-            'type' => ['required', Rule::in(array_keys(ReferralCode::TYPES))],
+            'type' => ['required', Rule::in([ReferralCode::TYPE_EVENT_FREE_REG])],
             'discount_amount' => ['required', 'integer', 'min:0', 'max:100000000'],
             'max_uses' => ['required', 'integer', 'min:'.max(1, $referralCode->used_count), 'max:1000'],
             'notes' => ['nullable', 'string', 'max:255'],

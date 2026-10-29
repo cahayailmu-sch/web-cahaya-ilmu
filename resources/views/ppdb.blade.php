@@ -520,6 +520,10 @@
               </div>
 
               <div class="border-t border-slate-100 px-5 py-5 sm:px-6">
+                @include('partials.spmb-tk-fee-detail', ['spmbTk' => $spmbTk])
+              </div>
+
+              <div class="border-t border-slate-100 px-5 py-5 sm:px-6">
                 <h4 class="flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.12em] text-slate-500">
                   <i class="fa-solid fa-list-check text-gold-600" aria-hidden="true"></i> Alur SPMB {{ $spmbTk['name'] }}
                 </h4>
@@ -553,10 +557,6 @@
                     <li>
                       <p class="font-extrabold">Event Muslim Vibes — Gratis Biaya Pendaftaran Rp 250.000</p>
                       <p class="text-gold-800/80">Tersedia 10 kode spesial <strong>CI26-...</strong>, masing-masing hanya berlaku untuk 1 pendaftar.</p>
-                    </li>
-                    <li>
-                      <p class="font-extrabold">Kakak Alumni — Potongan Rp 500.000</p>
-                      <p class="text-gold-800/80">Berlaku dengan minimal 2 kakak alumni KB-TK Islam Cahaya Ilmu. Kode diperoleh dari Admin TK.</p>
                     </li>
                   </ul>
                   <p class="mt-3 text-[10px] font-bold text-gold-700">Masukkan kode pada formulir, lalu klik “Cek Kode” sebelum mengirim pendaftaran.</p>
@@ -1067,22 +1067,9 @@
                       <span id="check-referral-text">Cek Kode</span>
                     </button>
                   </div>
-                  <p id="referral-code-hint" class="form-hint">Punya kode dari Event Muslim Vibes atau kode kakak alumni KB-TK? Masukkan kodenya lalu klik Cek Kode.</p>
+                  <p id="referral-code-hint" class="form-hint">Punya kode voucher dari Event Muslim Vibes? Masukkan kodenya lalu klik Cek Kode.</p>
                   <div id="referral-status" class="mt-3 hidden rounded-lg border p-3 text-[11px] font-semibold leading-5" role="status" aria-live="polite"></div>
-                  <div id="referral-alumni-wrap" class="mt-3 hidden">
-                    <label for="referral-alumni-names" class="form-label">Nama 2 Kakak Alumni KB-TK Islam Cahaya Ilmu <span>*</span></label>
-                    <textarea id="referral-alumni-names"
-                              name="referral_alumni_names"
-                              rows="2"
-                              class="form-textarea"
-                              placeholder="Contoh: Aisyah (TK B 2023), Fatimah (TK A 2024)"
-                              aria-describedby="referral-alumni-hint">{{ old('referral_alumni_names') }}</textarea>
-                    <p id="referral-alumni-hint" class="form-hint">Tuliskan nama dan tahun kelompok kakak alumni untuk verifikasi internal TK.</p>
-                  </div>
                   @error('referral_code')
-                    <p class="mt-2 text-xs font-semibold text-rose-600">{{ $message }}</p>
-                  @enderror
-                  @error('referral_alumni_names')
                     <p class="mt-2 text-xs font-semibold text-rose-600">{{ $message }}</p>
                   @enderror
                 </div>
