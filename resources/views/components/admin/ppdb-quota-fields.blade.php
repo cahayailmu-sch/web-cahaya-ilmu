@@ -79,19 +79,38 @@
 
                 <div class="mt-4 grid gap-3 sm:grid-cols-3">
                     @foreach ($groupQuotas as $group)
-                        <div>
-                            <label for="{{ $group['setting_key'] }}" class="block text-xs font-medium text-slate-600">Kuota {{ $group['label'] }}</label>
-                            <input id="{{ $group['setting_key'] }}"
-                                   name="{{ $group['setting_key'] }}"
-                                   type="number"
-                                   min="0"
-                                   max="10000"
-                                   placeholder="{{ $tkGroupDefinitions[$group['key']]['default'] ?? 0 }}"
-                                   value="{{ old($group['setting_key'], $group['quota']) }}"
-                                   class="mt-1 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm outline-none transition placeholder:text-slate-400 focus:border-rose-400 focus:ring-2 focus:ring-rose-100">
-                            @error($group['setting_key'])
-                                <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
-                            @enderror
+                        @php
+                            $overrideKey = 'quota_used_override_'.$group['slug'];
+                        @endphp
+                        <div class="space-y-2">
+                            <div>
+                                <label for="{{ $group['setting_key'] }}" class="block text-xs font-medium text-slate-600">Kuota Maksimal {{ $group['label'] }}</label>
+                                <input id="{{ $group['setting_key'] }}"
+                                       name="{{ $group['setting_key'] }}"
+                                       type="number"
+                                       min="0"
+                                       max="10000"
+                                       placeholder="{{ $tkGroupDefinitions[$group['key']]['default'] ?? 0 }}"
+                                       value="{{ old($group['setting_key'], $group['quota']) }}"
+                                       class="mt-1 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm outline-none transition placeholder:text-slate-400 focus:border-rose-400 focus:ring-2 focus:ring-rose-100">
+                                @error($group['setting_key'])
+                                    <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            <div>
+                                <label for="{{ $overrideKey }}" class="block text-xs font-medium text-slate-500">Kuota Terisi Manual {{ $group['label'] }}</label>
+                                <input id="{{ $overrideKey }}"
+                                       name="{{ $overrideKey }}"
+                                       type="number"
+                                       min="0"
+                                       max="10000"
+                                       placeholder="Otomatis: {{ $group['used'] }}"
+                                       value="{{ old($overrideKey, $settings[$overrideKey] ?? '') }}"
+                                       class="mt-1 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm outline-none transition placeholder:text-slate-400 focus:border-rose-400 focus:ring-2 focus:ring-rose-100">
+                                @error($overrideKey)
+                                    <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+                                @enderror
+                            </div>
                         </div>
                     @endforeach
                 </div>
@@ -155,6 +174,25 @@
                                value="{{ old("quota_{$key}_p", $femaleQuota) }}"
                                class="mt-1 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm outline-none transition placeholder:text-slate-400 focus:border-rose-400 focus:ring-2 focus:ring-rose-100">
                         @error("quota_{$key}_p")
+                            <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        @php
+                            $overrideKey = 'quota_used_override_'.$key;
+                        @endphp
+                        <label for="{{ $overrideKey }}" class="block text-xs font-medium text-slate-500">Kuota Terisi Manual {{ $label }} (opsional)</label>
+                        <input id="{{ $overrideKey }}"
+                               name="{{ $overrideKey }}"
+                               type="number"
+                               min="0"
+                               max="10000"
+                               placeholder="Otomatis: {{ $summary['total_used'] ?? 0 }}"
+                               value="{{ old($overrideKey, $settings[$overrideKey] ?? '') }}"
+                               class="mt-1 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm outline-none transition placeholder:text-slate-400 focus:border-rose-400 focus:ring-2 focus:ring-rose-100">
+                        <p class="mt-1 text-[11px] text-slate-400">Dipakai hanya saat "Sumber Angka Kuota Terisi" diatur ke override manual.</p>
+                        @error($overrideKey)
                             <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>

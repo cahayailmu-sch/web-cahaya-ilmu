@@ -794,9 +794,15 @@
         <div class="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 class="text-base font-extrabold text-slate-900">Ketersediaan Kuota SPMB</h2>
-            <p class="mt-1 text-xs leading-6 text-slate-500">Sisa kursi Laki-laki dan Perempuan diperbarui otomatis dari data pendaftar aktif.</p>
+            <p class="mt-1 text-xs leading-6 text-slate-500">
+              @if ($ppdbQuotaDisplay['visible'])
+                Sisa kursi diperbarui otomatis dari data pendaftar aktif.
+              @else
+                Informasi angka kuota disembunyikan. Status ketersediaan tetap diperbarui otomatis.
+              @endif
+            </p>
           </div>
-          <span class="text-[10px] font-extrabold uppercase tracking-[0.12em] text-brand-700">Laki-laki &amp; Perempuan</span>
+          <span class="text-[10px] font-extrabold uppercase tracking-[0.12em] text-brand-700">{{ $ppdbQuotaDisplay['mode_label'] }}</span>
         </div>
         <div class="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           @foreach ($ppdbLevels as $level => $levelInfo)
@@ -826,36 +832,70 @@
                 @endif
               </p>
 
-              @php($levelQuota = $ppdbQuotas[$level] ?? null)
-              @if ($levelQuota)
+              @php
+                $levelQuota = $ppdbQuotas[$level] ?? null;
+                $publicLevelQuota = $ppdbPublicQuotas[$level] ?? null;
+                $showQuotaNumbers = (bool) ($ppdbQuotaDisplay['visible'] ?? true);
+                $quotaDisplayMode = $ppdbQuotaDisplay['mode'] ?? 'full';
+              @endphp
+              @if ($levelQuota || $publicLevelQuota)
                 <div class="mt-3 space-y-2 border-t border-slate-100 pt-3">
                   @if ($level === 'TK' && ! empty($levelQuota['groups']))
                     @foreach ($levelQuota['groups'] as $groupQuota)
-                      <div class="flex items-center justify-between gap-2 text-[11px]">
-                        <span class="font-semibold text-slate-600">Kelompok {{ $groupQuota['label'] }}</span>
-                        @if ($groupQuota['is_full'])
-                          <span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-rose-700">PENUH</span>
-                        @else
-                          <span class="font-bold text-emerald-700">Sisa {{ number_format($groupQuota['remaining']) }} dari {{ number_format($groupQuota['quota']) }}</span>
+                      <div>
+                        <div class="flex items-center justify-between gap-2 text-[11px]">
+                          <span class="font-semibold text-slate-600">Kelompok {{ $groupQuota['label'] }}</span>
+                          @if ($groupQuota['is_full'])
+                            <span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-rose-700">PENUH</span>
+                          @else
+                            <span class="font-bold text-emerald-700">{{ \App\Models\SchoolSetting::ppdbQuotaDisplayText($groupQuota, $ppdbQuotaDisplay) }}</span>
+                          @endif
+                        </div>
+                        @if ($showQuotaNumbers && $quotaDisplayMode === 'full')
+                          <div class="mt-1 h-1 overflow-hidden rounded-full bg-slate-100">
+                            <div class="h-full rounded-full {{ $groupQuota['is_full'] ? 'bg-rose-500' : 'bg-emerald-500' }}" style="width: {{ $groupQuota['percentage'] }}%"></div>
+                          </div>
                         @endif
                       </div>
                     @endforeach
                   @else
-                    @foreach (['male', 'female'] as $genderKey)
-                      @php($genderQuota = $levelQuota[$genderKey])
+                    @if ($publicLevelQuota && (! $showQuotaNumbers || $quotaDisplayMode !== 'full'))
                       <div class="flex items-center justify-between gap-2 text-[11px]">
-                        <span class="font-semibold text-slate-600">{{ $genderQuota['label'] }}</span>
-                        @if ($genderQuota['is_full'])
+                        <span class="font-semibold text-slate-600">Total {{ $level }}</span>
+                        @if ($publicLevelQuota['is_full'])
                           <span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-rose-700">PENUH</span>
                         @else
-                          <span class="font-bold text-emerald-700">Sisa {{ number_format($genderQuota['remaining']) }} dari {{ number_format($genderQuota['quota']) }}</span>
+                          <span class="font-bold text-emerald-700">{{ \App\Models\SchoolSetting::ppdbQuotaDisplayText($publicLevelQuota, $ppdbQuotaDisplay) }}</span>
                         @endif
                       </div>
-                    @endforeach
+                    @endif
+
+                    @if ($showQuotaNumbers)
+                      @foreach (['male', 'female'] as $genderKey)
+                        @php
+                          $genderQuota = $levelQuota[$genderKey];
+                        @endphp
+                        <div>
+                          <div class="flex items-center justify-between gap-2 text-[11px]">
+                            <span class="font-semibold text-slate-600">{{ $genderQuota['label'] }}</span>
+                            @if ($genderQuota['is_full'])
+                              <span class="inline-flex items-center rounded-full bg-rose-100 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-rose-700">PENUH</span>
+                            @else
+                              <span class="font-bold text-emerald-700">{{ \App\Models\SchoolSetting::ppdbQuotaDisplayText($genderQuota, $ppdbQuotaDisplay) }}</span>
+                            @endif
+                          </div>
+                          @if ($quotaDisplayMode === 'full')
+                            <div class="mt-1 h-1 overflow-hidden rounded-full bg-slate-100">
+                              <div class="h-full rounded-full {{ $genderQuota['is_full'] ? 'bg-rose-500' : 'bg-emerald-500' }}" style="width: {{ $genderQuota['percentage'] }}%"></div>
+                            </div>
+                          @endif
+                        </div>
+                      @endforeach
+                    @endif
                   @endif
                 </div>
 
-                @if ($levelQuota['is_full'])
+                @if ($ppdbLevelQuotaFull[$level] ?? false)
                   <p class="mt-3 rounded-lg bg-rose-50 px-2.5 py-2 text-[10px] font-semibold leading-5 text-rose-700">
                     <i class="fa-solid fa-circle-exclamation mr-1" aria-hidden="true"></i>
                     @if ($level === 'TK')
@@ -934,11 +974,71 @@
               </span>
             </div>
 
-            @if (! $ppdbOpen)
-              <div class="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-6 text-amber-800">
-                <i class="fa-solid fa-triangle-exclamation mr-1" aria-hidden="true"></i>
-                Pendaftaran SPMB saat ini berstatus <strong>Tutup</strong> untuk seluruh jenjang.
-                Silakan hubungi admin SPMB atau coba kembali pada periode pendaftaran berikutnya.
+            @php
+              $registrationStateLabels = [
+                'manual_closed' => 'Pendaftaran Sementara Ditutup',
+                'before_start' => 'Pendaftaran Belum Dibuka',
+                'after_end' => 'Pendaftaran Telah Ditutup',
+                'outside_hours' => 'Di Luar Jam Operasional',
+              ];
+            @endphp
+
+            @if (! $registrationWindow['is_open'])
+              <div id="ppdb-registration-closed" class="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900" role="alert">
+                <div class="flex items-start gap-3">
+                  <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-700">
+                    <i class="fa-solid fa-clock text-base" aria-hidden="true"></i>
+                  </span>
+                  <div class="min-w-0">
+                    <p class="text-sm font-extrabold">{{ $registrationStateLabels[$registrationWindow['state']] ?? 'Pendaftaran Ditutup' }}</p>
+                    <p class="mt-1 text-xs leading-6 text-amber-800/90">{{ $registrationWindow['message'] }}</p>
+
+                    @if ($registrationWindow['next_open_at'])
+                      <p class="mt-3 text-[10px] font-extrabold uppercase tracking-[0.12em] text-amber-700">Pendaftaran dibuka kembali dalam</p>
+                      <div class="mt-2 grid max-w-sm grid-cols-4 gap-2"
+                           data-countdown-target="{{ $registrationWindow['next_open_at']->toIso8601String() }}"
+                           data-countdown-mode="open">
+                        <div class="rounded-xl border border-amber-200 bg-white/80 px-2 py-2 text-center">
+                          <span data-countdown-days class="block text-lg font-extrabold text-amber-900">00</span>
+                          <span class="block text-[9px] font-bold uppercase tracking-wider text-amber-600">Hari</span>
+                        </div>
+                        <div class="rounded-xl border border-amber-200 bg-white/80 px-2 py-2 text-center">
+                          <span data-countdown-hours class="block text-lg font-extrabold text-amber-900">00</span>
+                          <span class="block text-[9px] font-bold uppercase tracking-wider text-amber-600">Jam</span>
+                        </div>
+                        <div class="rounded-xl border border-amber-200 bg-white/80 px-2 py-2 text-center">
+                          <span data-countdown-minutes class="block text-lg font-extrabold text-amber-900">00</span>
+                          <span class="block text-[9px] font-bold uppercase tracking-wider text-amber-600">Menit</span>
+                        </div>
+                        <div class="rounded-xl border border-amber-200 bg-white/80 px-2 py-2 text-center">
+                          <span data-countdown-seconds class="block text-lg font-extrabold text-amber-900">00</span>
+                          <span class="block text-[9px] font-bold uppercase tracking-wider text-amber-600">Detik</span>
+                        </div>
+                      </div>
+                      <p class="mt-2 text-[11px] font-semibold text-amber-700">
+                        <i class="fa-regular fa-calendar-days mr-1" aria-hidden="true"></i>
+                        {{ $registrationWindow['next_open_at']->locale('id')->isoFormat('dddd, D MMMM YYYY [pukul] HH:mm') }} WITA
+                      </p>
+                    @elseif ($registrationWindow['daily_enabled'])
+                      <p class="mt-3 text-[11px] font-semibold text-amber-700">
+                        <i class="fa-regular fa-clock mr-1" aria-hidden="true"></i>
+                        Jam operasional formulir: {{ $registrationWindow['daily_open'] }}&ndash;{{ $registrationWindow['daily_close'] }} WITA.
+                      </p>
+                    @endif
+                  </div>
+                </div>
+              </div>
+            @elseif ($registrationWindow['closes_at'])
+              <div class="mt-5 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[11px] font-semibold text-emerald-800">
+                <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                <span>Pendaftaran sedang dibuka.</span>
+                <span class="inline-flex items-center gap-1 rounded-full bg-white/70 px-2 py-0.5 font-extrabold text-emerald-700">
+                  Ditutup dalam
+                  <span data-countdown-target="{{ $registrationWindow['closes_at']->toIso8601String() }}" data-countdown-mode="close" data-countdown-compact>--</span>
+                </span>
+                @if ($registrationWindow['daily_enabled'])
+                  <span class="text-emerald-700/70">({{ $registrationWindow['daily_open'] }}&ndash;{{ $registrationWindow['daily_close'] }} WITA)</span>
+                @endif
               </div>
             @endif
 
@@ -956,7 +1056,9 @@
                 </div>
               @endif
 
-              @php($selectedLevel = old('level', strtoupper((string) request('jenjang'))))
+              @php
+                $selectedLevel = old('level', strtoupper((string) request('jenjang')));
+              @endphp
 
               <div class="grid gap-4 sm:grid-cols-2">
                 <div class="sm:col-span-2">
@@ -1013,9 +1115,16 @@
                   <select id="jenjang-pilihan" name="level" class="form-select" required>
                     <option value="" disabled @selected(! $selectedLevel)>Pilih jenjang</option>
                     @foreach (['TK' => 'KB-TK Islam Cahaya Ilmu', 'SD' => 'SD Islam Cahaya Ilmu', 'SMP' => 'SMP Islam Cahaya Ilmu', 'SMA' => 'SMA Islam Cahaya Ilmu (Khusus Banaat / Putri)'] as $level => $levelName)
-                      @php($isLevelOpen = $ppdbLevels[$level]['is_open'] ?? false)
-                      <option value="{{ $level }}" @selected($selectedLevel === $level) @disabled(! $isLevelOpen)>
-                        {{ $levelName }}{{ $isLevelOpen ? '' : ' — Pendaftaran Ditutup' }}
+                      @php
+                        $isLevelOpen = $ppdbLevels[$level]['is_open'] ?? false;
+                        $isLevelFull = $ppdbLevelQuotaFull[$level] ?? false;
+                        $isRegistrationOpen = $registrationWindow['is_open'] ?? true;
+                        $levelOptionSuffix = ! $isRegistrationOpen
+                          ? ' — Pendaftaran Ditutup'
+                          : ($isLevelFull ? ' — Kuota Penuh' : ($isLevelOpen ? '' : ' — Pendaftaran Ditutup'));
+                      @endphp
+                      <option value="{{ $level }}" @selected($selectedLevel === $level) @disabled(! $isRegistrationOpen || ! $isLevelOpen || $isLevelFull)>
+                        {{ $levelName }}{{ $levelOptionSuffix }}
                       </option>
                     @endforeach
                   </select>
@@ -1029,10 +1138,17 @@
                   <select id="sub-level" name="sub_level" class="form-select" aria-describedby="sub-level-hint">
                     <option value="" disabled @selected(! old('sub_level'))>Pilih kelompok</option>
                     @foreach ($spmbTk['groups'] as $groupKey => $group)
+                      @php
+                        $groupQuota = $ppdbQuotas['TK']['groups'][$groupKey] ?? null;
+                        $groupQuotaText = $groupQuota
+                          ? \App\Models\SchoolSetting::ppdbQuotaDisplayText($groupQuota, $ppdbQuotaDisplay)
+                          : '';
+                      @endphp
                       <option value="{{ $groupKey }}"
                               data-base-label="{{ $group['label'] }} — min. {{ $group['min_age_label'] }} per Juni {{ $targetSchoolYear }}"
-                              @selected(old('sub_level') === $groupKey)>
-                        {{ $group['label'] }} &mdash; min. {{ $group['min_age_label'] }} per Juni {{ $targetSchoolYear }}
+                              @selected(old('sub_level') === $groupKey)
+                              @disabled($groupQuota !== null && $groupQuota['is_full'])>
+                        {{ $group['label'] }} &mdash; min. {{ $group['min_age_label'] }} per Juni {{ $targetSchoolYear }}@if ($groupQuotaText !== '') &mdash; {{ $groupQuotaText }}@endif
                       </option>
                     @endforeach
                   </select>
@@ -1085,7 +1201,9 @@
 
                   <div id="quota-group-grid" class="mt-3 hidden grid gap-2 sm:grid-cols-3">
                     @foreach ($spmbTk['groups'] as $groupKey => $group)
-                      @php($groupSlug = strtolower(str_replace(' ', '_', $groupKey)))
+                      @php
+                        $groupSlug = strtolower(str_replace(' ', '_', $groupKey));
+                      @endphp
                       <div class="rounded-lg border border-brand-100 bg-white p-3">
                         <div class="flex items-center justify-between gap-2">
                           <span class="text-xs font-extrabold text-slate-800">Kelompok {{ $groupKey }}</span>
@@ -1202,17 +1320,28 @@
                 <span>Saya menyetujui data yang dikirim digunakan untuk keperluan proses SPMB Cahaya Ilmu Islamic School Balikpapan.</span>
               </label>
 
-              <button type="submit" class="btn btn-primary mt-5 w-full">
+              <button type="submit"
+                      id="ppdb-submit"
+                      class="btn btn-primary mt-5 w-full"
+                      @disabled(! $registrationWindow['is_open'])>
                 Kirim Pendaftaran
                 <i class="fa-solid fa-paper-plane text-sm" aria-hidden="true"></i>
               </button>
+              @if (! $registrationWindow['is_open'])
+                <p class="mt-2 text-center text-[10px] font-semibold leading-5 text-rose-600">
+                  <i class="fa-solid fa-lock mr-1" aria-hidden="true"></i>
+                  Tombol kirim dikunci sampai pendaftaran dibuka kembali.
+                </p>
+              @endif
 
               <p class="mt-3 text-center text-[10px] leading-5 text-slate-400">
                 Data akan disimpan di sistem sekolah. Setelah berhasil, tombol konfirmasi WhatsApp admin akan muncul otomatis.
               </p>
             </form>
 
-            @php($ppdbSuccess = session('ppdb_success'))
+            @php
+              $ppdbSuccess = session('ppdb_success');
+            @endphp
             @if ($ppdbSuccess)
               <div id="ppdb-success" class="form-success mt-5" role="status" aria-live="polite">
                 <div class="flex items-start gap-3">
@@ -1395,6 +1524,18 @@
 
     window.CI_PPDB_LEVELS = @json($ppdbLevelsJs);
     window.CI_PPDB_QUOTA = @json($ppdbQuotas);
+    window.CI_PPDB_PUBLIC_QUOTA = @json($ppdbPublicQuotas);
+    window.CI_PPDB_QUOTA_DISPLAY = @json($ppdbQuotaDisplay);
+    window.CI_PPDB_REGISTRATION = {
+      is_open: {{ $registrationWindow['is_open'] ? 'true' : 'false' }},
+      state: @json($registrationWindow['state']),
+      next_open_at: @json($registrationWindow['next_open_at']?->toIso8601String()),
+      closes_at: @json($registrationWindow['closes_at']?->toIso8601String()),
+      daily_enabled: {{ $registrationWindow['daily_enabled'] ? 'true' : 'false' }},
+      daily_open: @json($registrationWindow['daily_open']),
+      daily_close: @json($registrationWindow['daily_close']),
+      timezone: @json($registrationWindow['timezone'])
+    };
     window.CI_SPMB_AGE = {
       minimum_months: {{ $minimumSdAgeMonths }},
       reference_date: @json($schoolYearStartDate),
@@ -1419,6 +1560,66 @@
      * CSRF saat diakses lewat DevTunnel / HTTPS reverse proxy.
      */
     window.CI_REFERRAL_ENDPOINT = '/spmb/check-referral';
+  </script>
+
+  <script>
+    (function () {
+      const countdowns = Array.from(document.querySelectorAll('[data-countdown-target]'));
+
+      if (!countdowns.length) return;
+
+      const pad = (value) => String(Math.max(0, value)).padStart(2, '0');
+
+      const compact = (diff) => {
+        const totalSeconds = Math.max(0, Math.floor(diff / 1000));
+        const days = Math.floor(totalSeconds / 86400);
+        const hours = Math.floor((totalSeconds % 86400) / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+
+        if (days > 0) return `${days} hari ${hours} jam`;
+        if (hours > 0) return `${hours} jam ${minutes} menit`;
+        return `${minutes} menit ${pad(seconds)} detik`;
+      };
+
+      const render = () => {
+        countdowns.forEach((root) => {
+          const target = new Date(root.dataset.countdownTarget).getTime();
+
+          if (Number.isNaN(target)) return;
+
+          const diff = Math.max(0, target - Date.now());
+
+          if (root.hasAttribute('data-countdown-compact')) {
+            root.textContent = diff > 0 ? compact(diff) : 'sebentar lagi';
+          } else {
+            const days = Math.floor(diff / 86400000);
+            const hours = Math.floor((diff % 86400000) / 3600000);
+            const minutes = Math.floor((diff % 3600000) / 60000);
+            const seconds = Math.floor((diff % 60000) / 1000);
+            const parts = {
+              days: root.querySelector('[data-countdown-days]'),
+              hours: root.querySelector('[data-countdown-hours]'),
+              minutes: root.querySelector('[data-countdown-minutes]'),
+              seconds: root.querySelector('[data-countdown-seconds]'),
+            };
+
+            if (parts.days) parts.days.textContent = pad(days);
+            if (parts.hours) parts.hours.textContent = pad(hours);
+            if (parts.minutes) parts.minutes.textContent = pad(minutes);
+            if (parts.seconds) parts.seconds.textContent = pad(seconds);
+          }
+
+          if (diff <= 0 && root.dataset.countdownMode === 'open' && !root.dataset.countdownReloaded) {
+            root.dataset.countdownReloaded = '1';
+            window.setTimeout(() => window.location.reload(), 1500);
+          }
+        });
+      };
+
+      render();
+      window.setInterval(render, 1000);
+    })();
   </script>
 
   <script src="/js/adaptive-images.js"></script>

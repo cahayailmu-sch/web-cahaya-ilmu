@@ -43,6 +43,38 @@ class SchoolSetting extends Model
     ];
 
     /**
+     * Timezone used for every SPMB schedule and operational-hour check.
+     */
+    public const PPDB_TIMEZONE = 'Asia/Makassar';
+
+    /**
+     * Public quota transparency modes.
+     *
+     * @var array<string, string>
+     */
+    public const PPDB_QUOTA_DISPLAY_MODES = [
+        'full' => 'Tampilkan Detail Lengkap',
+        'remaining' => 'Hanya Tampilkan Sisa Kuota',
+        'status' => 'Sembunyikan Angka (Hanya Status)',
+    ];
+
+    /**
+     * Registration opening modes controlled by the admin.
+     *
+     * @var array<string, string>
+     */
+    public const PPDB_REGISTRATION_MODES = [
+        'open' => 'Buka',
+        'closed' => 'Tutup Sementara',
+        'scheduled' => 'Ikuti Jadwal Otomatis',
+    ];
+
+    /**
+     * Safe fallback message when the admin leaves the custom message empty.
+     */
+    public const PPDB_DEFAULT_CLOSED_MESSAGE = 'Pendaftaran SPMB sedang ditutup. Silakan kembali pada jadwal yang telah ditentukan atau hubungi panitia SPMB.';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
@@ -62,16 +94,16 @@ class SchoolSetting extends Model
     {
         $settings ??= static::pluck('value', 'key');
 
-        $globalStatus = ($settings['status_ppdb'] ?? '') !== '' ? $settings['status_ppdb'] : 'Tutup';
-        $today = Carbon::today();
+        $globalStatus = ($settings['status_ppdb'] ?? '') !== '' ? $settings['status_ppdb'] : 'Buka';
+        $today = Carbon::now(self::PPDB_TIMEZONE)->startOfDay();
         $levels = [];
 
         foreach (['TK', 'SD', 'SMP', 'SMA'] as $level) {
             $key = strtolower($level);
             $start = $settings["ppdb_start_{$key}"] ?? null;
             $end = $settings["ppdb_end_{$key}"] ?? null;
-            $startDate = $start ? Carbon::parse($start)->startOfDay() : null;
-            $endDate = $end ? Carbon::parse($end)->startOfDay() : null;
+            $startDate = $start ? Carbon::parse($start, self::PPDB_TIMEZONE)->startOfDay() : null;
+            $endDate = $end ? Carbon::parse($end, self::PPDB_TIMEZONE)->startOfDay() : null;
             $levelStatus = ($settings["ppdb_status_{$key}"] ?? '') !== '' ? $settings["ppdb_status_{$key}"] : $globalStatus;
 
             $withinPeriod = (! $startDate || $today->greaterThanOrEqualTo($startDate))
@@ -176,6 +208,7 @@ class SchoolSetting extends Model
         $settings ??= static::pluck('value', 'key');
         $quotas = static::ppdbQuotas($settings);
         $tkGroups = static::ppdbTkGroupQuotaSummary($settings);
+        $countMode = static::ppdbQuotaCountMode($settings);
 
         $usage = [];
         $rows = PpdbRegistration::query()
@@ -215,13 +248,25 @@ class SchoolSetting extends Model
                 continue;
             }
 
+            $totalQuota = $male['quota'] + $female['quota'];
+            $totalUsed = $male['used'] + $female['used'];
+
+            if ($countMode === 'manual') {
+                $overrideKey = 'quota_used_override_'.strtolower($level);
+                $override = $settings[$overrideKey] ?? null;
+
+                if ($override !== null && trim((string) $override) !== '') {
+                    $totalUsed = max(0, (int) $override);
+                }
+            }
+
             $summary[$level] = [
                 'level' => $level,
                 'male' => $male,
                 'female' => $female,
-                'total_used' => $male['used'] + $female['used'],
-                'total_quota' => $male['quota'] + $female['quota'],
-                'is_full' => $male['is_full'] && $female['is_full'],
+                'total_used' => $totalUsed,
+                'total_quota' => $totalQuota,
+                'is_full' => $totalUsed >= $totalQuota,
             ];
         }
 
@@ -236,7 +281,9 @@ class SchoolSetting extends Model
      */
     public static function ppdbTkGroupQuotaSummary(?Collection $settings = null): array
     {
+        $settings ??= static::pluck('value', 'key');
         $quotas = static::ppdbTkGroupQuotas($settings);
+        $countMode = static::ppdbQuotaCountMode($settings);
 
         $usage = PpdbRegistration::query()
             ->where('level', 'TK')
@@ -249,9 +296,20 @@ class SchoolSetting extends Model
         $summary = [];
 
         foreach ($quotas as $groupKey => $group) {
+            $used = (int) ($usage[$groupKey] ?? 0);
+
+            if ($countMode === 'manual') {
+                $overrideKey = 'quota_used_override_'.$group['slug'];
+                $override = $settings[$overrideKey] ?? null;
+
+                if ($override !== null && trim((string) $override) !== '') {
+                    $used = max(0, (int) $override);
+                }
+            }
+
             $summary[$groupKey] = self::quotaRow(
                 $group['label'],
-                (int) ($usage[$groupKey] ?? 0),
+                $used,
                 $group['quota'],
             ) + [
                 'key' => $groupKey,
@@ -261,6 +319,288 @@ class SchoolSetting extends Model
         }
 
         return $summary;
+    }
+
+    /**
+     * Get the configured quota-counting mode ("auto" or "manual").
+     *
+     * @param  Collection<string, string|null>|null  $settings
+     */
+    public static function ppdbQuotaCountMode(?Collection $settings = null): string
+    {
+        $settings ??= static::pluck('value', 'key');
+        $mode = (string) ($settings['quota_count_mode'] ?? 'auto');
+
+        return in_array($mode, ['auto', 'manual'], true) ? $mode : 'auto';
+    }
+
+    /**
+     * Build the public quota transparency configuration.
+     *
+     * Existing installations without these keys fall back to showing the
+     * full quota details so the public page never breaks after deployment.
+     *
+     * @param  Collection<string, string|null>|null  $settings
+     * @return array{visible: bool, mode: string, mode_label: string, count_mode: string}
+     */
+    public static function ppdbQuotaDisplaySettings(?Collection $settings = null): array
+    {
+        $settings ??= static::pluck('value', 'key');
+
+        $visible = ! $settings->has('quota_public_visible')
+            || filter_var((string) $settings['quota_public_visible'], FILTER_VALIDATE_BOOLEAN);
+
+        $mode = (string) ($settings['quota_display_mode'] ?? 'full');
+
+        if (! array_key_exists($mode, self::PPDB_QUOTA_DISPLAY_MODES)) {
+            $mode = 'full';
+        }
+
+        return [
+            'visible' => $visible,
+            'mode' => $mode,
+            'mode_label' => self::PPDB_QUOTA_DISPLAY_MODES[$mode],
+            'count_mode' => static::ppdbQuotaCountMode($settings),
+        ];
+    }
+
+    /**
+     * Build the per-level and per-group quota rows shown on the public page.
+     *
+     * KB, TK A, and TK B are reported per group. SD, SMP, and SMA are
+     * reported as one aggregate row per level.
+     *
+     * @param  Collection<string, string|null>|null  $settings
+     * @return array<string, array{key: string, level: string, slug: string, label: string, used: int, quota: int, remaining: int, percentage: int, is_full: bool}>
+     */
+    public static function ppdbPublicQuotaSummary(?Collection $settings = null): array
+    {
+        $settings ??= static::pluck('value', 'key');
+        $summary = static::ppdbQuotaSummary($settings);
+        $rows = [];
+
+        foreach (self::PPDB_TK_GROUPS as $groupKey => $group) {
+            $row = $summary['TK']['groups'][$groupKey] ?? null;
+
+            if (! is_array($row)) {
+                continue;
+            }
+
+            $rows[$groupKey] = $row + [
+                'key' => $groupKey,
+                'level' => 'TK',
+                'slug' => $group['slug'],
+            ];
+        }
+
+        foreach (['SD', 'SMP', 'SMA'] as $level) {
+            $levelSummary = $summary[$level] ?? null;
+
+            if (! is_array($levelSummary)) {
+                continue;
+            }
+
+            $rows[$level] = self::quotaRow(
+                $level,
+                (int) $levelSummary['total_used'],
+                (int) $levelSummary['total_quota'],
+            ) + [
+                'key' => $level,
+                'level' => $level,
+                'slug' => strtolower($level),
+            ];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * Format a quota row according to the configured transparency mode.
+     *
+     * @param  array{is_full?: bool, remaining?: int, quota?: int}  $row
+     * @param  array{visible: bool, mode: string}|null  $display
+     */
+    public static function ppdbQuotaDisplayText(array $row, ?array $display = null): string
+    {
+        $display ??= ['visible' => true, 'mode' => 'full'];
+
+        if ((bool) ($row['is_full'] ?? false)) {
+            return 'Kuota Penuh';
+        }
+
+        if (! ($display['visible'] ?? true) || ($display['mode'] ?? 'full') === 'status') {
+            return 'Tersedia';
+        }
+
+        $remaining = number_format((int) ($row['remaining'] ?? 0), 0, ',', '.');
+
+        if (($display['mode'] ?? 'full') === 'remaining') {
+            return 'Sisa '.$remaining;
+        }
+
+        return 'Sisa '.$remaining.' dari '.number_format((int) ($row['quota'] ?? 0), 0, ',', '.');
+    }
+
+    /**
+     * Determine whether SPMB registration is currently open in WITA.
+     *
+     * Manual "Buka" is the safe default when the settings are missing.
+     * Manual "Tutup Sementara" always closes the form, while "Ikuti Jadwal
+     * Otomatis" applies the configured dates and optional daily hours.
+     *
+     * @param  Collection<string, string|null>|null  $settings
+     * @return array{
+     *     timezone: string,
+     *     mode: string,
+     *     mode_label: string,
+     *     state: string,
+     *     is_open: bool,
+     *     message: string,
+     *     next_open_at: Carbon|null,
+     *     closes_at: Carbon|null,
+     *     starts_at: Carbon|null,
+     *     ends_at: Carbon|null,
+     *     daily_enabled: bool,
+     *     daily_open: string,
+     *     daily_close: string,
+     *     now: Carbon
+     * }
+     */
+    public static function ppdbRegistrationWindow(?Collection $settings = null): array
+    {
+        $settings ??= static::pluck('value', 'key');
+        $now = Carbon::now(self::PPDB_TIMEZONE);
+
+        $mode = (string) ($settings['registration_mode'] ?? 'open');
+
+        if (! array_key_exists($mode, self::PPDB_REGISTRATION_MODES)) {
+            $mode = 'open';
+        }
+
+        $start = static::parseMakassarDateTime($settings['registration_start_at'] ?? null);
+        $end = static::parseMakassarDateTime($settings['registration_end_at'] ?? null);
+        $dailyEnabled = filter_var((string) ($settings['registration_daily_hours_enabled'] ?? '0'), FILTER_VALIDATE_BOOLEAN);
+        $dailyOpen = static::normalizeTime((string) ($settings['registration_daily_open_time'] ?? '07:00'), '07:00');
+        $dailyClose = static::normalizeTime((string) ($settings['registration_daily_close_time'] ?? '21:00'), '21:00');
+        $message = trim((string) ($settings['registration_closed_message'] ?? ''));
+
+        if ($message === '') {
+            $message = self::PPDB_DEFAULT_CLOSED_MESSAGE;
+        }
+
+        $state = 'open';
+        $nextOpenAt = null;
+        $closesAt = null;
+
+        if ($mode === 'closed') {
+            $state = 'manual_closed';
+        } elseif ($mode === 'scheduled') {
+            if ($start !== null && $now->lt($start)) {
+                $state = 'before_start';
+                $nextOpenAt = $start->copy();
+            } elseif ($end !== null && $now->gt($end)) {
+                $state = 'after_end';
+            } elseif ($dailyEnabled) {
+                [$state, $nextOpenAt, $closesAt] = static::resolveDailyWindow($now, $dailyOpen, $dailyClose);
+            } else {
+                $closesAt = $end?->copy();
+            }
+        }
+
+        if ($mode === 'open' && $dailyEnabled) {
+            [$state, $nextOpenAt, $closesAt] = static::resolveDailyWindow($now, $dailyOpen, $dailyClose);
+        }
+
+        if ($closesAt !== null && $end !== null && $closesAt->gt($end)) {
+            $closesAt = $end->copy();
+        }
+
+        if ($nextOpenAt !== null && $end !== null && $nextOpenAt->gt($end)) {
+            $nextOpenAt = null;
+        }
+
+        $isOpen = $state === 'open';
+
+        return [
+            'timezone' => self::PPDB_TIMEZONE,
+            'mode' => $mode,
+            'mode_label' => self::PPDB_REGISTRATION_MODES[$mode],
+            'state' => $state,
+            'is_open' => $isOpen,
+            'message' => $message,
+            'next_open_at' => $isOpen ? null : $nextOpenAt,
+            'closes_at' => $isOpen ? $closesAt : null,
+            'starts_at' => $start,
+            'ends_at' => $end,
+            'daily_enabled' => $dailyEnabled,
+            'daily_open' => $dailyOpen,
+            'daily_close' => $dailyClose,
+            'now' => $now,
+        ];
+    }
+
+    /**
+     * Resolve the daily operational window, including overnight ranges.
+     *
+     * @return array{0: string, 1: Carbon|null, 2: Carbon|null}
+     */
+    private static function resolveDailyWindow(Carbon $now, string $openTime, string $closeTime): array
+    {
+        $openAt = Carbon::createFromFormat('H:i', $openTime, self::PPDB_TIMEZONE)
+            ->setDate($now->year, $now->month, $now->day);
+        $closeAt = Carbon::createFromFormat('H:i', $closeTime, self::PPDB_TIMEZONE)
+            ->setDate($now->year, $now->month, $now->day);
+
+        // Overnight window, e.g. 21:00 WITA until 07:00 WITA the next day.
+        if ($closeTime <= $openTime) {
+            if ($now->lt($closeAt)) {
+                return ['open', null, $closeAt];
+            }
+
+            if ($now->gte($openAt)) {
+                return ['open', null, $closeAt->copy()->addDay()];
+            }
+
+            return ['outside_hours', $openAt, null];
+        }
+
+        if ($now->lt($openAt)) {
+            return ['outside_hours', $openAt, null];
+        }
+
+        if ($now->gte($closeAt)) {
+            return ['outside_hours', $openAt->copy()->addDay(), null];
+        }
+
+        return ['open', null, $closeAt];
+    }
+
+    /**
+     * Parse a stored datetime value as WITA without shifting the wall clock.
+     */
+    private static function parseMakassarDateTime(mixed $value): ?Carbon
+    {
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value, self::PPDB_TIMEZONE)->setTimezone(self::PPDB_TIMEZONE);
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * Normalize an "HH:MM" value, falling back to a safe default.
+     */
+    private static function normalizeTime(string $value, string $fallback): string
+    {
+        $value = trim($value);
+
+        return preg_match('/^([01]\d|2[0-3]):[0-5]\d$/', $value) === 1 ? $value : $fallback;
     }
 
     /**

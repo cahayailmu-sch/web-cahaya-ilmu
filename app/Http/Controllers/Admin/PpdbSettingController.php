@@ -40,6 +40,8 @@ class PpdbSettingController extends Controller
             'ppdbLevels' => SchoolSetting::ppdbLevels($settings),
             'quotaSummary' => SchoolSetting::ppdbQuotaSummary($settings, array_values($editableLevels)),
             'quotaLevels' => $editableLevels,
+            'quotaDisplay' => SchoolSetting::ppdbQuotaDisplaySettings($settings),
+            'registrationWindow' => SchoolSetting::ppdbRegistrationWindow($settings),
             'whatsappGroups' => SchoolSetting::ppdbWhatsappGroups($settings),
             'isSuperAdmin' => (bool) auth()->user()?->isSuperAdmin(),
             'canManageReferralCodes' => $canManageReferralCodes,
@@ -64,19 +66,45 @@ class PpdbSettingController extends Controller
         if ($isSuperAdmin) {
             $rules['status_ppdb'] = ['nullable', Rule::in(['Buka', 'Tutup'])];
             $rules['tahun_ajaran'] = ['nullable', 'string', 'max:20'];
+            $rules['quota_public_visible'] = ['nullable', 'boolean'];
+            $rules['quota_display_mode'] = ['nullable', Rule::in(array_keys(SchoolSetting::PPDB_QUOTA_DISPLAY_MODES))];
+            $rules['quota_count_mode'] = ['nullable', Rule::in(['auto', 'manual'])];
+            $rules['registration_mode'] = ['nullable', Rule::in(array_keys(SchoolSetting::PPDB_REGISTRATION_MODES))];
+            $rules['registration_start_at'] = ['nullable', 'date'];
+            $rules['registration_end_at'] = [
+                'nullable',
+                'date',
+                ...($request->filled('registration_start_at') ? ['after_or_equal:registration_start_at'] : []),
+            ];
+            $rules['registration_daily_hours_enabled'] = ['nullable', 'boolean'];
+            $rules['registration_daily_open_time'] = ['nullable', 'date_format:H:i'];
+            $rules['registration_daily_close_time'] = ['nullable', 'date_format:H:i'];
+            $rules['registration_closed_message'] = ['nullable', 'string', 'max:2000'];
+
             $messages['status_ppdb.in'] = 'Status SPMB tidak valid.';
             $messages['tahun_ajaran.max'] = 'Tahun ajaran terlalu panjang.';
+            $messages['quota_display_mode.in'] = 'Mode transparansi kuota tidak valid.';
+            $messages['quota_count_mode.in'] = 'Mode penghitungan kuota tidak valid.';
+            $messages['registration_mode.in'] = 'Status pendaftaran manual tidak valid.';
+            $messages['registration_end_at.after_or_equal'] = 'Jadwal tutup pendaftaran tidak boleh lebih awal dari jadwal buka.';
+            $messages['registration_daily_open_time.date_format'] = 'Jam buka harian harus berformat HH:MM (contoh 07:00).';
+            $messages['registration_daily_close_time.date_format'] = 'Jam tutup harian harus berformat HH:MM (contoh 21:00).';
         }
 
         foreach ($editableLevels as $key => $label) {
             if ($key === 'tk') {
                 foreach (SchoolSetting::PPDB_TK_GROUPS as $group) {
                     $settingKey = $group['setting_key'];
+                    $overrideKey = 'quota_used_override_'.$group['slug'];
 
                     $rules[$settingKey] = ['nullable', 'integer', 'min:0', 'max:10000'];
+                    $rules[$overrideKey] = ['nullable', 'integer', 'min:0', 'max:10000'];
                     $messages["{$settingKey}.integer"] = "Kuota kelompok {$group['label']} harus berupa angka.";
                     $messages["{$settingKey}.min"] = "Kuota kelompok {$group['label']} tidak boleh negatif.";
                     $messages["{$settingKey}.max"] = "Kuota kelompok {$group['label']} maksimal 10.000.";
+                    $messages["{$overrideKey}.integer"] = "Kuota terisi manual kelompok {$group['label']} harus berupa angka.";
+                    $messages["{$overrideKey}.min"] = "Kuota terisi manual kelompok {$group['label']} tidak boleh negatif.";
+                    $messages["{$overrideKey}.max"] = "Kuota terisi manual kelompok {$group['label']} maksimal 10.000.";
                 }
 
                 // Keep accepting the previous TK gender keys so legacy payloads
@@ -84,8 +112,11 @@ class PpdbSettingController extends Controller
                 $rules['quota_tk_l'] = ['nullable', 'integer', 'min:0', 'max:10000'];
                 $rules['quota_tk_p'] = ['nullable', 'integer', 'min:0', 'max:10000'];
             } else {
+                $overrideKey = 'quota_used_override_'.$key;
+
                 $rules["quota_{$key}_l"] = ['nullable', 'integer', 'min:0', 'max:10000'];
                 $rules["quota_{$key}_p"] = ['nullable', 'integer', 'min:0', 'max:10000'];
+                $rules[$overrideKey] = ['nullable', 'integer', 'min:0', 'max:10000'];
 
                 $messages["quota_{$key}_l.integer"] = "Kuota laki-laki {$label} harus berupa angka.";
                 $messages["quota_{$key}_l.min"] = "Kuota laki-laki {$label} tidak boleh negatif.";
@@ -93,6 +124,9 @@ class PpdbSettingController extends Controller
                 $messages["quota_{$key}_p.integer"] = "Kuota perempuan {$label} harus berupa angka.";
                 $messages["quota_{$key}_p.min"] = "Kuota perempuan {$label} tidak boleh negatif.";
                 $messages["quota_{$key}_p.max"] = "Kuota perempuan {$label} maksimal 10.000.";
+                $messages["{$overrideKey}.integer"] = "Kuota terisi manual {$label} harus berupa angka.";
+                $messages["{$overrideKey}.min"] = "Kuota terisi manual {$label} tidak boleh negatif.";
+                $messages["{$overrideKey}.max"] = "Kuota terisi manual {$label} maksimal 10.000.";
             }
 
             $rules["wa_group_{$key}_l"] = ['nullable', 'url', 'max:255'];
@@ -153,7 +187,7 @@ class PpdbSettingController extends Controller
             'update',
             'Pengaturan SPMB',
             $isSuperAdmin
-                ? 'Memperbarui pengaturan SPMB untuk seluruh jenjang (status, tahun ajaran, kuota, grup WhatsApp, biaya, rekening, dan kontak panitia).'
+                ? 'Memperbarui pengaturan SPMB untuk seluruh jenjang (status, tahun ajaran, transparansi kuota, jadwal & jam operasional, kuota, grup WhatsApp, biaya, rekening, dan kontak panitia).'
                 : 'Memperbarui pengaturan SPMB jenjang '.($editableLevels[array_key_first($editableLevels)] ?? '-').' (kuota, grup WhatsApp, dan kontak panitia).',
             $afterChanges !== [] ? ['before' => $beforeChanges, 'after' => $afterChanges] : null,
         );

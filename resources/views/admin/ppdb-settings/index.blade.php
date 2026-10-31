@@ -70,6 +70,215 @@
                 </section>
             @endif
 
+            @if ($isSuperAdmin)
+            @php
+                $windowStateLabels = [
+                    'open' => 'Pendaftaran Dibuka',
+                    'manual_closed' => 'Ditutup Sementara',
+                    'before_start' => 'Belum Dibuka',
+                    'after_end' => 'Sudah Ditutup',
+                    'outside_hours' => 'Di Luar Jam Operasional',
+                ];
+                $windowState = $registrationWindow['state'] ?? 'open';
+                $startValue = old('registration_start_at', $settings['registration_start_at'] ?? '');
+                $endValue = old('registration_end_at', $settings['registration_end_at'] ?? '');
+
+                try {
+                    $startValue = $startValue !== '' ? \Illuminate\Support\Carbon::parse($startValue, \App\Models\SchoolSetting::PPDB_TIMEZONE)->format('Y-m-d\TH:i') : '';
+                } catch (\Throwable) {
+                    $startValue = '';
+                }
+
+                try {
+                    $endValue = $endValue !== '' ? \Illuminate\Support\Carbon::parse($endValue, \App\Models\SchoolSetting::PPDB_TIMEZONE)->format('Y-m-d\TH:i') : '';
+                } catch (\Throwable) {
+                    $endValue = '';
+                }
+            @endphp
+
+            <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+                <div class="flex flex-wrap items-start justify-between gap-3 sm:items-center">
+                    <div class="flex items-start gap-2.5 sm:items-center sm:gap-2">
+                        <span class="grid size-8 shrink-0 place-items-center rounded-lg bg-sky-50 text-sky-600">
+                            <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178Z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                            </svg>
+                        </span>
+                        <div>
+                            <h2 class="text-sm font-semibold text-slate-900">Transparansi Kuota ke Publik</h2>
+                            <p class="text-xs text-slate-500">Atur apakah sisa kuota ditampilkan di halaman /ppdb dan bagaimana angkanya disajikan.</p>
+                        </div>
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-extrabold {{ $quotaDisplay['visible'] ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600' }}">
+                        <span class="size-1.5 rounded-full {{ $quotaDisplay['visible'] ? 'bg-emerald-500' : 'bg-slate-400' }}"></span>
+                        {{ $quotaDisplay['visible'] ? 'Kuota Ditampilkan' : 'Kuota Disembunyikan' }}
+                    </span>
+                </div>
+
+                <div class="mt-5 grid gap-4 lg:grid-cols-3">
+                    <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
+                        <input type="hidden" name="quota_public_visible" value="0">
+                        <label class="flex cursor-pointer items-start gap-3">
+                            <input type="checkbox"
+                                   name="quota_public_visible"
+                                   value="1"
+                                   class="mt-0.5 size-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500"
+                                   @checked((string) old('quota_public_visible', $quotaDisplay['visible'] ? '1' : '0') === '1')>
+                            <span>
+                                <span class="block text-sm font-semibold text-slate-800">Tampilkan Informasi Sisa Kuota ke Publik</span>
+                                <span class="mt-1 block text-[11px] leading-5 text-slate-500">Jika dimatikan, angka kuota disembunyikan. Status penuh tetap ditampilkan agar pilihan jenjang yang dinonaktifkan tetap jelas.</span>
+                            </span>
+                        </label>
+                        @error('quota_public_visible')
+                            <p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="quota_display_mode" class="block text-sm font-medium text-slate-700">Mode Transparansi Kuota</label>
+                        <select id="quota_display_mode"
+                                name="quota_display_mode"
+                                class="mt-1.5 block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-100">
+                            @foreach (\App\Models\SchoolSetting::PPDB_QUOTA_DISPLAY_MODES as $mode => $modeLabel)
+                                <option value="{{ $mode }}" @selected(old('quota_display_mode', $quotaDisplay['mode']) === $mode)>{{ $modeLabel }}</option>
+                            @endforeach
+                        </select>
+                        @error('quota_display_mode')
+                            <p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="quota_count_mode" class="block text-sm font-medium text-slate-700">Sumber Angka Kuota Terisi</label>
+                        <select id="quota_count_mode"
+                                name="quota_count_mode"
+                                class="mt-1.5 block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-100">
+                            <option value="auto" @selected(old('quota_count_mode', $quotaDisplay['count_mode']) === 'auto')>Otomatis dari data pendaftar</option>
+                            <option value="manual" @selected(old('quota_count_mode', $quotaDisplay['count_mode']) === 'manual')>Override manual oleh Admin</option>
+                        </select>
+                        <p class="mt-1 text-[11px] leading-5 text-slate-400">Mode manual memakai isian "Kuota Terisi Manual" pada bagian kuota di bawah.</p>
+                        @error('quota_count_mode')
+                            <p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+            </section>
+
+            <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+                <div class="flex flex-wrap items-start justify-between gap-3 sm:items-center">
+                    <div class="flex items-start gap-2.5 sm:items-center sm:gap-2">
+                        <span class="grid size-8 shrink-0 place-items-center rounded-lg bg-amber-50 text-amber-600">
+                            <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                            </svg>
+                        </span>
+                        <div>
+                            <h2 class="text-sm font-semibold text-slate-900">Jadwal &amp; Jam Operasional Pendaftaran (WITA)</h2>
+                            <p class="text-xs text-slate-500">Kontrol kapan formulir pendaftaran dapat diakses. Semua pengecekan memakai zona waktu Asia/Makassar (WITA).</p>
+                        </div>
+                    </div>
+                    <span class="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-extrabold {{ $registrationWindow['is_open'] ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700' }}">
+                        <span class="size-1.5 rounded-full {{ $registrationWindow['is_open'] ? 'bg-emerald-500' : 'bg-rose-500' }}"></span>
+                        {{ $windowStateLabels[$windowState] ?? 'Pendaftaran Dibuka' }}
+                    </span>
+                </div>
+
+                <div class="mt-5 grid gap-4 sm:grid-cols-2">
+                    <div class="sm:col-span-2">
+                        <label for="registration_mode" class="block text-sm font-medium text-slate-700">Status Pendaftaran Manual</label>
+                        <select id="registration_mode"
+                                name="registration_mode"
+                                class="mt-1.5 block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-100">
+                            @foreach (\App\Models\SchoolSetting::PPDB_REGISTRATION_MODES as $mode => $modeLabel)
+                                <option value="{{ $mode }}" @selected(old('registration_mode', $settings['registration_mode'] ?? 'open') === $mode)>{{ $modeLabel }}</option>
+                            @endforeach
+                        </select>
+                        @error('registration_mode')
+                            <p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="registration_start_at" class="block text-sm font-medium text-slate-700">Jadwal Buka (WITA)</label>
+                        <input id="registration_start_at"
+                               name="registration_start_at"
+                               type="datetime-local"
+                               value="{{ $startValue }}"
+                               class="mt-1.5 block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-100">
+                        <p class="mt-1 text-[11px] text-slate-400">Dipakai saat status "Ikuti Jadwal Otomatis".</p>
+                        @error('registration_start_at')
+                            <p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="registration_end_at" class="block text-sm font-medium text-slate-700">Jadwal Tutup (WITA)</label>
+                        <input id="registration_end_at"
+                               name="registration_end_at"
+                               type="datetime-local"
+                               value="{{ $endValue }}"
+                               class="mt-1.5 block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-100">
+                        <p class="mt-1 text-[11px] text-slate-400">Kosongkan bila pendaftaran tidak memiliki batas waktu tutup.</p>
+                        @error('registration_end_at')
+                            <p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:col-span-2">
+                        <input type="hidden" name="registration_daily_hours_enabled" value="0">
+                        <label class="flex cursor-pointer items-start gap-3">
+                            <input type="checkbox"
+                                   name="registration_daily_hours_enabled"
+                                   value="1"
+                                   class="mt-0.5 size-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500"
+                                   @checked((string) old('registration_daily_hours_enabled', filter_var($settings['registration_daily_hours_enabled'] ?? '0', FILTER_VALIDATE_BOOLEAN) ? '1' : '0') === '1')>
+                            <span>
+                                <span class="block text-sm font-semibold text-slate-800">Batasi Jam Akses Form Harian</span>
+                                <span class="mt-1 block text-[11px] leading-5 text-slate-500">Di luar jam ini formulir dikunci dan pengunjung melihat hitung mundur menuju jam buka berikutnya.</span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <div>
+                        <label for="registration_daily_open_time" class="block text-sm font-medium text-slate-700">Jam Buka Harian (WITA)</label>
+                        <input id="registration_daily_open_time"
+                               name="registration_daily_open_time"
+                               type="time"
+                               value="{{ old('registration_daily_open_time', $settings['registration_daily_open_time'] ?? '07:00') }}"
+                               class="mt-1.5 block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-100">
+                        @error('registration_daily_open_time')
+                            <p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="registration_daily_close_time" class="block text-sm font-medium text-slate-700">Jam Tutup Harian (WITA)</label>
+                        <input id="registration_daily_close_time"
+                               name="registration_daily_close_time"
+                               type="time"
+                               value="{{ old('registration_daily_close_time', $settings['registration_daily_close_time'] ?? '21:00') }}"
+                               class="mt-1.5 block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-100">
+                        @error('registration_daily_close_time')
+                            <p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <label for="registration_closed_message" class="block text-sm font-medium text-slate-700">Pesan Saat Pendaftaran Belum Dibuka / Tutup</label>
+                        <textarea id="registration_closed_message"
+                                  name="registration_closed_message"
+                                  rows="3"
+                                  class="mt-1.5 block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-100">{{ old('registration_closed_message', $settings['registration_closed_message'] ?? \App\Models\SchoolSetting::PPDB_DEFAULT_CLOSED_MESSAGE) }}</textarea>
+                        <p class="mt-1 text-[11px] text-slate-400">Pesan ini tampil pada banner pengunci formulir di halaman /ppdb.</p>
+                        @error('registration_closed_message')
+                            <p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+            </section>
+            @endif
+
             <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
                 <div class="flex items-start gap-2.5 sm:items-center sm:gap-2">
                     <span class="grid size-8 shrink-0 place-items-center rounded-lg bg-rose-50 text-rose-600">

@@ -647,6 +647,8 @@ const ADMIN_WHATSAPP = Object.freeze({
     })();
     const ppdbLevels = window.CI_PPDB_LEVELS || {};
     const ppdbQuotas = window.CI_PPDB_QUOTA || {};
+    const ppdbQuotaDisplay = window.CI_PPDB_QUOTA_DISPLAY || { visible: true, mode: 'full' };
+    const ppdbRegistration = window.CI_PPDB_REGISTRATION || { is_open: true };
     const tkConfig = window.CI_SPMB_TK || {};
     const tkGroups = tkConfig.groups || {};
     const quotaDetail = $('#quota-detail');
@@ -664,17 +666,20 @@ const ADMIN_WHATSAPP = Object.freeze({
     let referralState = null;
     let referralRequestId = 0;
 
+    const registrationIsOpen = () => ppdbRegistration.is_open !== false;
+
     const syncSubmitState = () => {
       if (!submitButton) return;
 
       /*
-       * Kunci tombol submit hanya ketika jenjang/kelompok yang dipilih sudah
-       * penuh. Pengguna tetap bisa memperbaiki pilihan untuk melanjutkan.
+       * Kunci tombol submit ketika jenjang/kelompok yang dipilih sudah penuh
+       * atau pendaftaran sedang ditutup oleh jadwal/jam operasional.
        */
-      submitButton.disabled = quotaIsFull;
-      submitButton.setAttribute('aria-disabled', String(quotaIsFull));
-      submitButton.classList.toggle('cursor-not-allowed', quotaIsFull);
-      submitButton.classList.toggle('opacity-50', quotaIsFull);
+      const isLocked = quotaIsFull || !registrationIsOpen();
+      submitButton.disabled = isLocked;
+      submitButton.setAttribute('aria-disabled', String(isLocked));
+      submitButton.classList.toggle('cursor-not-allowed', isLocked);
+      submitButton.classList.toggle('opacity-50', isLocked);
     };
 
     const normalizeDate = (value) => {
@@ -1023,6 +1028,39 @@ const ADMIN_WHATSAPP = Object.freeze({
     const quotaGenderLabels = { male: 'Laki-laki', female: 'Perempuan' };
     const quotaGenderFromCode = { L: 'male', P: 'female' };
     const quotaGroupSlug = (groupKey) => String(groupKey).toLowerCase().replace(/\s+/g, '_');
+    const quotaDisplayVisible = ppdbQuotaDisplay.visible !== false;
+    const quotaDisplayMode = ppdbQuotaDisplay.mode || 'full';
+
+    /* Format badge/dropdown sesuai pengaturan transparansi kuota admin. */
+    const quotaBadgeText = (label, data) => {
+      if (!data) return label;
+      if (data.is_full) return `${label} — Kuota Penuh`;
+      if (!quotaDisplayVisible || quotaDisplayMode === 'status') return `${label} — Tersedia`;
+      if (quotaDisplayMode === 'remaining') return `${label} — sisa ${data.remaining}`;
+
+      return `${label} — sisa ${data.remaining} dari ${data.quota}`;
+    };
+
+    const quotaStatusText = (data) => {
+      if (!data) return '-';
+      if (data.is_full) return 'Kuota Penuh';
+      if (!quotaDisplayVisible || quotaDisplayMode === 'status') return 'Tersedia';
+
+      return `Sisa ${data.remaining}`;
+    };
+
+    const quotaCountText = (data) => {
+      if (!data) return '-';
+      if (!quotaDisplayVisible || quotaDisplayMode === 'status') return 'Angka kuota disembunyikan';
+
+      return `Terisi: ${data.used} / ${data.quota} ${data.label}`;
+    };
+
+    const quotaBarWidth = (data) => {
+      if (!data || !quotaDisplayVisible || quotaDisplayMode === 'status') return 0;
+
+      return Number(data.percentage) || 0;
+    };
 
     const currentLevelQuota = () => {
       if (!jenjangSelect || !jenjangSelect.value) return null;
@@ -1033,13 +1071,17 @@ const ADMIN_WHATSAPP = Object.freeze({
     /* Tampilkan badge sisa/penuh pada pilihan jenis kelamin (SD, SMP, SMA). */
     const updateGenderQuotaIndicators = (quota, isTk = false) => {
       if (genderSelect) {
+        const isSma = jenjangSelect ? jenjangSelect.value === 'SMA' : false;
+
         Object.entries(quotaGenderFromCode).forEach(([code, key]) => {
           const option = genderSelect.querySelector(`option[value="${code}"]`);
           if (!option) return;
 
           const label = quotaGenderLabels[key];
-          const isFull = !isTk && Boolean(quota && quota[key] && quota[key].is_full);
-          option.textContent = isFull ? `${label} — PENUH` : label;
+          const data = !isTk && quota ? quota[key] : null;
+          const isFull = Boolean(data && data.is_full);
+          option.textContent = isFull ? `${label} — Kuota Penuh` : label;
+          option.disabled = isFull || (code === 'L' && isSma);
         });
       }
 
@@ -1056,9 +1098,7 @@ const ADMIN_WHATSAPP = Object.freeze({
         badge.className = data.is_full
           ? 'inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-extrabold text-rose-700'
           : 'inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700';
-        badge.textContent = data.is_full
-          ? `${data.label} — PENUH`
-          : `${data.label} — sisa ${data.remaining}`;
+        badge.textContent = quotaBadgeText(data.label, data);
         genderQuotaBadges.appendChild(badge);
       });
     };
@@ -1076,9 +1116,8 @@ const ADMIN_WHATSAPP = Object.freeze({
 
           const data = groups[option.value];
 
-          option.textContent = data
-            ? `${baseLabel} — ${data.is_full ? 'PENUH' : `sisa ${data.remaining}`}`
-            : baseLabel;
+          option.textContent = quotaBadgeText(baseLabel, data);
+          option.disabled = Boolean(data && data.is_full);
         });
       }
 
@@ -1091,9 +1130,7 @@ const ADMIN_WHATSAPP = Object.freeze({
           badge.className = data.is_full
             ? 'inline-flex items-center gap-1 rounded-full bg-rose-100 px-2 py-0.5 text-[10px] font-extrabold text-rose-700'
             : 'inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700';
-          badge.textContent = data.is_full
-            ? `${data.label || groupKey} — PENUH`
-            : `${data.label || groupKey} — sisa ${data.remaining}`;
+          badge.textContent = quotaBadgeText(data.label || groupKey, data);
           subLevelQuotaBadges.appendChild(badge);
         });
       }
@@ -1105,18 +1142,18 @@ const ADMIN_WHATSAPP = Object.freeze({
         const bar = document.getElementById(`quota-group-${slug}-bar`);
 
         if (status) {
-          status.textContent = data.is_full ? 'PENUH' : `Sisa ${data.remaining}`;
+          status.textContent = quotaStatusText(data);
           status.className = data.is_full
             ? 'text-[10px] font-extrabold text-rose-600'
             : 'text-[10px] font-extrabold text-emerald-700';
         }
 
         if (count) {
-          count.textContent = `Terisi: ${data.used} / ${data.quota} ${data.label}`;
+          count.textContent = quotaCountText(data);
         }
 
         if (bar) {
-          bar.style.width = `${data.percentage}%`;
+          bar.style.width = `${quotaBarWidth(data)}%`;
           bar.className = `h-full rounded-full ${data.is_full ? 'bg-rose-500' : 'bg-emerald-500'}`;
         }
       });
@@ -1203,18 +1240,18 @@ const ADMIN_WHATSAPP = Object.freeze({
         const bar = document.getElementById(`quota-${key}-bar`);
 
         if (status) {
-          status.textContent = data.is_full ? 'PENUH' : `Sisa ${data.remaining}`;
+          status.textContent = quotaStatusText(data);
           status.className = data.is_full
             ? 'text-[10px] font-extrabold text-rose-600'
             : 'text-[10px] font-extrabold text-emerald-700';
         }
 
         if (count) {
-          count.textContent = `Terisi: ${data.used} / ${data.quota} ${data.label}`;
+          count.textContent = quotaCountText(data);
         }
 
         if (bar) {
-          bar.style.width = `${data.percentage}%`;
+          bar.style.width = `${quotaBarWidth(data)}%`;
           bar.className = `h-full rounded-full ${data.is_full ? 'bg-rose-500' : 'bg-emerald-500'}`;
         }
       });

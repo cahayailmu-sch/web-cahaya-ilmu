@@ -250,9 +250,19 @@ class FrontController extends Controller
         $publicData = $this->publicViewData();
         $settings = $publicData['settings'];
         $levels = SchoolSetting::ppdbLevels($settings);
+        $publicQuotas = SchoolSetting::ppdbPublicQuotaSummary($settings);
+        $tkPublicQuotas = collect($publicQuotas)->only(array_keys(SchoolSetting::PPDB_TK_GROUPS));
+        $levelQuotaFull = [];
 
-        $levelsJs = collect($levels)->map(fn (array $level) => [
+        foreach (array_keys($levels) as $level) {
+            $levelQuotaFull[$level] = $level === 'TK'
+                ? $tkPublicQuotas->isNotEmpty() && $tkPublicQuotas->every(fn (array $row): bool => (bool) $row['is_full'])
+                : (bool) ($publicQuotas[$level]['is_full'] ?? false);
+        }
+
+        $levelsJs = collect($levels)->map(fn (array $level, string $levelKey) => [
             'is_open' => $level['is_open'],
+            'is_full' => $levelQuotaFull[$levelKey] ?? false,
             'bank' => $level['bank'],
             'account_number' => $level['account_number'],
             'account_name' => $level['account_name'],
@@ -262,12 +272,17 @@ class FrontController extends Controller
 
         $targetYear = $this->targetSchoolYear($settings);
         $sdCutoff = $this->sdCutoffBirthDate($settings);
+        $registrationWindow = SchoolSetting::ppdbRegistrationWindow($settings);
 
         return view('ppdb', [
             'ppdbLevels' => $levels,
             'ppdbLevelsJs' => $levelsJs,
             'ppdbQuotas' => SchoolSetting::ppdbQuotaSummary($settings),
-            'ppdbOpen' => collect($levels)->contains('is_open', true),
+            'ppdbPublicQuotas' => $publicQuotas,
+            'ppdbQuotaDisplay' => SchoolSetting::ppdbQuotaDisplaySettings($settings),
+            'ppdbLevelQuotaFull' => $levelQuotaFull,
+            'registrationWindow' => $registrationWindow,
+            'ppdbOpen' => $registrationWindow['is_open'] && collect($levels)->contains('is_open', true),
             'minimumSdAgeMonths' => self::MINIMUM_SD_AGE_MONTHS,
             'schoolYearStartDate' => $this->schoolYearStartDate($settings)->toDateString(),
             'targetSchoolYear' => $targetYear,
@@ -322,6 +337,13 @@ class FrontController extends Controller
     {
         $settings = $this->settings();
         $levels = SchoolSetting::ppdbLevels($settings);
+        $registrationWindow = SchoolSetting::ppdbRegistrationWindow($settings);
+
+        if (! $registrationWindow['is_open']) {
+            throw ValidationException::withMessages([
+                'level' => $registrationWindow['message'],
+            ]);
+        }
 
         $request->merge([
             'gender' => $this->normalizeGender($request->input('gender')),
@@ -395,6 +417,14 @@ class FrontController extends Controller
                 ]);
             }
         } else {
+            $levelQuota = SchoolSetting::ppdbPublicQuotaSummary($settings)[$level] ?? null;
+
+            if ($levelQuota && $levelQuota['is_full']) {
+                throw ValidationException::withMessages([
+                    'level' => "Mohon maaf, kuota pendaftaran SPMB untuk jenjang {$level} saat ini sudah PENUH ({$levelQuota['used']}/{$levelQuota['quota']}). Silakan pilih jenjang lain atau hubungi panitia SPMB melalui WhatsApp untuk informasi daftar tunggu (Waiting List).",
+                ]);
+            }
+
             $genderQuota = SchoolSetting::ppdbQuotaSummary($settings, [$level])[$level][$validated['gender'] === 'L' ? 'male' : 'female'] ?? null;
 
             if ($genderQuota && $genderQuota['is_full']) {
