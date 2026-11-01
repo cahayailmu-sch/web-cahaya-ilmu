@@ -217,14 +217,14 @@
 
         <!-- Teks hero -->
         <div class="hero-copy min-w-0">
-          <!-- Sapaan Arab natural, tanpa kotak -->
-          <p class="mb-1 font-arabic text-left text-2xl font-bold leading-[2] text-amber-400 md:text-3xl" lang="ar">أَهْلًا وَسَهْلًا</p>
-
-          <!-- Nama yayasan sebagai eyebrow dengan aksen garis -->
-          <p class="mb-3 flex items-start gap-2.5 text-[10px] font-semibold uppercase leading-5 tracking-[0.14em] text-slate-300 sm:items-center sm:gap-3 sm:text-xs sm:tracking-[0.16em] md:text-sm">
-            <span class="mt-2 h-px w-6 shrink-0 bg-amber-400/70 sm:mt-0 sm:w-8" aria-hidden="true"></span>
-            <span class="min-w-0 break-words">{{ $foundationName }}</span>
-          </p>
+          <!-- Baris pembuka: nama yayasan (kiri) dan sapaan Arab (kanan) -->
+          <div class="mb-4 flex items-center justify-between gap-4 border-b border-white/10 pb-3">
+            <p class="flex min-w-0 items-center gap-2.5 text-[10px] font-semibold uppercase leading-5 tracking-[0.14em] text-slate-300 sm:gap-3 sm:text-xs sm:tracking-[0.16em] md:text-sm">
+              <span class="h-px w-6 shrink-0 bg-amber-400/70 sm:w-8" aria-hidden="true"></span>
+              <span class="min-w-0 break-words">{{ $foundationName }}</span>
+            </p>
+            <p dir="rtl" lang="ar" class="shrink-0 text-right font-arabic text-2xl font-bold leading-[2.1] text-amber-400 drop-shadow-[0_1px_12px_rgba(251,191,36,0.25)] md:text-3xl">أَهْلًا وَسَهْلًا</p>
+          </div>
 
           <h1 class="hero-title mt-1 text-3xl font-extrabold text-white sm:text-4xl lg:text-5xl">
             Membangun Generasi
@@ -415,10 +415,12 @@
 
           <!-- Teks tentang kami -->
           <div class="reveal">
-            <!-- Pembuka Arab yang mengalir, tanpa kotak -->
-            <div class="mb-6 border-l-2 border-amber-300 pl-4 sm:mb-7 sm:pl-5">
-              <p class="font-arabic text-left text-lg font-semibold leading-[2] text-brand-800 sm:text-2xl" lang="ar">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
-              <p class="font-arabic mt-1 text-left text-sm font-semibold leading-[2] text-amber-700 sm:text-lg" lang="ar">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ</p>
+            <!-- Pembuka Arab: Basmalah & Salam, rata kanan dengan aksen emas -->
+            <div class="mb-6 flex justify-end sm:mb-7">
+              <div dir="rtl" lang="ar" class="ml-auto w-fit max-w-xl rounded-2xl border border-amber-100 border-r-4 border-r-amber-400 bg-amber-50/60 px-4 py-3 pr-4 text-right sm:px-5 sm:py-4">
+                <p dir="rtl" lang="ar" class="font-arabic text-right text-lg font-semibold leading-[2.2] text-brand-800 sm:text-2xl">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+                <p dir="rtl" lang="ar" class="font-arabic mt-1 text-right text-sm font-semibold leading-[2.2] text-amber-700 sm:text-lg">السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ</p>
+              </div>
             </div>
 
             <span class="eyebrow">Tentang Kami</span>

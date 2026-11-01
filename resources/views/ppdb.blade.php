@@ -201,9 +201,11 @@
 
         <div class="mt-6 grid gap-8 sm:mt-8 sm:gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
           <div class="reveal min-w-0">
-            <!-- Sapaan Arab & pengantar menyatu tanpa badge -->
-            <p class="mb-1 font-arabic text-left text-2xl font-bold leading-[2] text-amber-400 md:text-3xl" lang="ar">أَهْلًا وَسَهْلًا</p>
-            <p class="text-xs font-medium text-slate-300 sm:text-sm">Ahlan wa Sahlan, Calon Peserta Didik Baru</p>
+            <!-- Baris pembuka: pengantar Latin (kiri) dan sapaan Arab (kanan) -->
+            <div class="mb-3 flex items-center justify-between gap-4 border-b border-white/10 pb-3">
+              <p class="min-w-0 text-xs font-medium text-slate-300 sm:text-sm">Ahlan wa Sahlan, Calon Peserta Didik Baru</p>
+              <p dir="rtl" lang="ar" class="shrink-0 text-right font-arabic text-2xl font-bold leading-[2.1] text-amber-400 md:text-3xl">أَهْلًا وَسَهْلًا</p>
+            </div>
 
             <p class="mt-3 flex items-start gap-2.5 text-[10px] font-semibold uppercase leading-5 tracking-[0.14em] text-slate-300 sm:items-center sm:gap-3 sm:text-[11px] sm:tracking-[0.16em] md:text-xs">
               <span class="mt-2 h-px w-6 shrink-0 bg-amber-400/70 sm:mt-0 sm:w-8" aria-hidden="true"></span>
