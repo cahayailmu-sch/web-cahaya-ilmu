@@ -188,6 +188,10 @@
       <figure class="lightbox-figure">
         <img id="lightbox-image" alt="">
         <figcaption id="lightbox-caption" class="lightbox-caption"></figcaption>
+        <p id="lightbox-date" class="lightbox-date" hidden>
+          <i class="fa-regular fa-calendar-days" aria-hidden="true"></i>
+          <span></span>
+        </p>
       </figure>
       <button type="button" class="lightbox-btn lightbox-next" data-lightbox-next aria-label="Foto berikutnya">
         <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>

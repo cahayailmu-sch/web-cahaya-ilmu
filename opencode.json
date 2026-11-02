@@ -4,6 +4,7 @@
         "laravel-boost": {
             "type": "local",
             "enabled": true,
+            "timeout": 60000,
             "command": [
                 "php",
                 "artisan",

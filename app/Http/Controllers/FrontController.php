@@ -48,7 +48,8 @@ class FrontController extends Controller
                 ->take(3)
                 ->get(),
             'galleries' => Gallery::query()
-                ->latest()
+                ->orderByRaw('COALESCE(taken_at, created_at) DESC')
+                ->orderByDesc('id')
                 ->take(8)
                 ->get(),
             'agendas' => SchoolAgenda::query()
@@ -174,7 +175,8 @@ class FrontController extends Controller
         $galleries = Gallery::query()
             ->when($activeLevel !== '', fn ($query) => $query->where('level', $activeLevel))
             ->when($activeCategory !== '', fn ($query) => $query->where('category', $activeCategory))
-            ->latest()
+            ->orderByRaw('COALESCE(taken_at, created_at) DESC')
+            ->orderByDesc('id')
             ->paginate(12)
             ->withQueryString();
 
@@ -204,7 +206,8 @@ class FrontController extends Controller
             'profile' => $profile,
             'galleries' => Gallery::query()
                 ->where('level', $level)
-                ->latest()
+                ->orderByRaw('COALESCE(taken_at, created_at) DESC')
+                ->orderByDesc('id')
                 ->take(8)
                 ->get(),
             'posts' => Post::query()

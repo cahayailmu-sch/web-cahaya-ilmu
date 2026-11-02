@@ -454,6 +454,7 @@ class FrontPageTest extends TestCase
             'image' => 'https://example.com/kelas-sd.jpg',
             'category' => 'Fasilitas',
             'level' => 'SD',
+            'taken_at' => '2026-10-15',
         ]);
 
         Gallery::create([
@@ -478,7 +479,10 @@ class FrontPageTest extends TestCase
             ->assertSee('adaptive-img', false)
             ->assertSee('Kelas SD Ceria')
             ->assertSee('Kegiatan SMP Bersama')
-            ->assertSee('Halaman Sekolah Umum');
+            ->assertSee('Halaman Sekolah Umum')
+            ->assertSee('15 Oktober 2026')
+            ->assertSee('data-date="15 Oktober 2026"', false)
+            ->assertSee('gallery-date-badge', false);
 
         $this->get(route('gallery.index', ['jenjang' => 'SD']))
             ->assertOk()

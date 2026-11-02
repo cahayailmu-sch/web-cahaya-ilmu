@@ -325,6 +325,7 @@ class AdminPanelTest extends TestCase
                 'title' => 'Kegiatan Sekolah',
                 'category' => 'Kegiatan',
                 'level' => 'SD',
+                'taken_at' => '2026-10-15',
                 'image' => UploadedFile::fake()->image('kegiatan.jpg'),
             ])
             ->assertRedirect();
@@ -332,6 +333,8 @@ class AdminPanelTest extends TestCase
         $gallery = Gallery::where('title', 'Kegiatan Sekolah')->firstOrFail();
 
         Storage::disk('public')->assertExists($gallery->image);
+        $this->assertSame('2026-10-15', $gallery->taken_at?->toDateString());
+        $this->assertSame('15 Oktober 2026', $gallery->documentationDateLabel());
 
         $this->actingAs($admin)
             ->delete(route('admin.galleries.destroy', $gallery))
@@ -339,6 +342,67 @@ class AdminPanelTest extends TestCase
 
         $this->assertDatabaseMissing('galleries', ['id' => $gallery->id]);
         Storage::disk('public')->assertMissing($gallery->image);
+    }
+
+    public function test_admin_can_update_gallery_documentation_date(): void
+    {
+        Storage::fake('public');
+
+        $admin = $this->createAdmin();
+
+        $gallery = Gallery::create([
+            'title' => 'Foto Lama',
+            'image' => 'https://example.com/foto-lama.jpg',
+            'category' => 'Fasilitas',
+            'level' => 'SD',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.galleries.edit', $gallery))
+            ->assertOk()
+            ->assertSee('Edit Foto Galeri')
+            ->assertSee('Tanggal Dokumentasi');
+
+        $this->actingAs($admin)
+            ->put(route('admin.galleries.update', $gallery), [
+                'title' => 'Foto Diperbarui',
+                'category' => 'Kegiatan',
+                'level' => 'SD',
+                'taken_at' => '2026-11-02',
+            ])
+            ->assertRedirect(route('admin.galleries.index'));
+
+        $gallery->refresh();
+
+        $this->assertSame('Foto Diperbarui', $gallery->title);
+        $this->assertSame('2026-11-02', $gallery->taken_at?->toDateString());
+        $this->assertSame('https://example.com/foto-lama.jpg', $gallery->image);
+    }
+
+    public function test_gallery_list_orders_by_documentation_date(): void
+    {
+        $admin = $this->createAdmin();
+
+        Gallery::create([
+            'title' => 'Dokumentasi Lebih Baru',
+            'image' => 'https://example.com/baru.jpg',
+            'category' => 'Kegiatan',
+            'level' => 'SD',
+            'taken_at' => '2026-11-01',
+        ]);
+
+        Gallery::create([
+            'title' => 'Dokumentasi Lebih Lama',
+            'image' => 'https://example.com/lama.jpg',
+            'category' => 'Kegiatan',
+            'level' => 'SD',
+            'taken_at' => '2026-10-01',
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.galleries.index'))
+            ->assertOk()
+            ->assertSeeInOrder(['Dokumentasi Lebih Baru', 'Dokumentasi Lebih Lama']);
     }
 
     public function test_admin_ppdb_page_displays_birth_details_age_and_payment_proof_link(): void

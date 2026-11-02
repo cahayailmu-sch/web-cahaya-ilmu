@@ -75,7 +75,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('ppdb/{ppdbRegistration}', [PpdbRegistrationController::class, 'destroy'])->name('ppdb.destroy');
 
         Route::resource('posts', PostController::class)->except('show');
-        Route::resource('galleries', GalleryController::class)->only(['index', 'store', 'destroy']);
+        Route::resource('galleries', GalleryController::class)->only(['index', 'store', 'edit', 'update', 'destroy']);
         Route::resource('agendas', SchoolAgendaController::class)->except(['create', 'show']);
         Route::patch('users/{user}/role', [AdminUserController::class, 'updateRole'])->name('users.role');
         Route::resource('users', AdminUserController::class)->except(['create', 'show']);

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 class Gallery extends Model
@@ -17,7 +18,36 @@ class Gallery extends Model
         'image',
         'category',
         'level',
+        'taken_at',
     ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'taken_at' => 'date',
+        ];
+    }
+
+    /**
+     * Get the documentation date, falling back to the upload date for older photos.
+     */
+    public function documentationDate(): ?Carbon
+    {
+        return $this->taken_at ?? $this->created_at;
+    }
+
+    /**
+     * Format the documentation date in Indonesian.
+     */
+    public function documentationDateLabel(): string
+    {
+        return $this->documentationDate()?->locale('id')->translatedFormat('d F Y') ?? '-';
+    }
 
     /**
      * Get the public URL of the gallery image.

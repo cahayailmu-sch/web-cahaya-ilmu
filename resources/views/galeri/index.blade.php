@@ -106,11 +106,16 @@
                     data-adaptive-frame
                     data-full="{{ $gallery->imageUrl() }}"
                     data-caption="{{ $gallery->title }} — {{ $gallery->category }} · {{ $gallery->level }}"
+                    data-date="{{ $gallery->documentationDateLabel() }}"
                     aria-label="Buka foto {{ $gallery->title }}">
               <img src="{{ $gallery->imageUrl() }}"
                    alt="{{ $gallery->title }} - {{ $gallery->category }} {{ $gallery->level }}"
                    width="800" height="600" loading="lazy" decoding="async"
                    class="adaptive-img">
+              <span class="gallery-date-badge" title="Tanggal dokumentasi">
+                <i class="fa-regular fa-calendar-days" aria-hidden="true"></i>
+                <span>{{ $gallery->documentationDateLabel() }}</span>
+              </span>
               <span class="gallery-caption">
                 <span class="gallery-caption-title">{{ $gallery->title }}</span>
                 <span class="gallery-caption-meta">

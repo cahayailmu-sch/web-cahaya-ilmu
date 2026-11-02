@@ -29,7 +29,7 @@
                 @csrf
 
                 <div class="grid gap-4 lg:grid-cols-12">
-                    <div class="lg:col-span-4">
+                    <div class="lg:col-span-3">
                         <label for="title" class="block text-sm font-medium text-slate-700">Judul Foto</label>
                         <input id="title"
                                name="title"
@@ -43,7 +43,7 @@
                         @enderror
                     </div>
 
-                    <div class="lg:col-span-3">
+                    <div class="lg:col-span-2">
                         <label for="category" class="block text-sm font-medium text-slate-700">Kategori</label>
                         <select id="category"
                                 name="category"
@@ -78,6 +78,20 @@
                                    class="mt-1.5 block w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm font-semibold text-slate-600 shadow-sm">
                         @endif
                         @error('level')
+                            <p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="lg:col-span-2">
+                        <label for="taken_at" class="block text-sm font-medium text-slate-700">Tanggal Dokumentasi</label>
+                        <input id="taken_at"
+                               name="taken_at"
+                               type="date"
+                               value="{{ old('taken_at', now()->toDateString()) }}"
+                               max="{{ now()->toDateString() }}"
+                               class="mt-1.5 block w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-sm outline-none transition focus:border-rose-400 focus:ring-4 focus:ring-rose-100">
+                        <p class="mt-1 text-[10px] leading-4 text-slate-400">Tanggal kegiatan/foto diambil. Otomatis dari EXIF untuk foto JPG.</p>
+                        @error('taken_at')
                             <p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>
                         @enderror
                     </div>
@@ -191,9 +205,22 @@
 
                         <div class="p-4">
                             <h3 class="truncate text-sm font-semibold text-slate-900">{{ $gallery->title }}</h3>
+                            <p class="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px] font-semibold text-slate-500">
+                                <svg class="size-3.5 shrink-0 text-rose-500" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                                </svg>
+                                <span class="text-slate-400">Tanggal Dokumentasi:</span>
+                                <span class="text-slate-700">{{ $gallery->documentationDateLabel() }}</span>
+                            </p>
                             <div class="mt-2 flex items-center justify-between gap-2 text-xs text-slate-500">
                                 <span class="inline-flex rounded-full bg-slate-100 px-2 py-0.5 font-medium text-slate-600">{{ $gallery->category }}</span>
-                                <span>{{ $gallery->created_at->format('d M Y') }}</span>
+                                <a href="{{ route('admin.galleries.edit', $gallery) }}"
+                                   class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-1 font-semibold text-slate-600 transition hover:border-rose-200 hover:bg-rose-50 hover:text-rose-700">
+                                    <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+                                    </svg>
+                                    Edit
+                                </a>
                             </div>
                         </div>
                     </article>

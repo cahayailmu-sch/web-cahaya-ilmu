@@ -420,6 +420,7 @@ const ADMIN_WHATSAPP = Object.freeze({
   const lightbox = $('#lightbox');
   const lightboxImage = $('#lightbox-image');
   const lightboxCaption = $('#lightbox-caption');
+  const lightboxDate = $('#lightbox-date');
   const lightboxClose = $('.lightbox-close', lightbox || document);
   const lightboxPrev = $('[data-lightbox-prev]', lightbox || document);
   const lightboxNext = $('[data-lightbox-next]', lightbox || document);
@@ -436,6 +437,16 @@ const ADMIN_WHATSAPP = Object.freeze({
     lightboxImage.alt = image ? image.alt : 'Foto fasilitas sekolah';
     if (lightboxCaption) {
       lightboxCaption.textContent = item.dataset.caption || (image ? image.alt : '');
+    }
+    if (lightboxDate) {
+      const dateLabel = $('span', lightboxDate);
+      const documentationDate = (item.dataset.date || '').trim();
+
+      if (dateLabel) {
+        dateLabel.textContent = documentationDate;
+      }
+
+      lightboxDate.hidden = documentationDate === '';
     }
   };
 
@@ -461,6 +472,9 @@ const ADMIN_WHATSAPP = Object.freeze({
     lightbox.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('no-scroll');
     lightboxImage.removeAttribute('src');
+    if (lightboxDate) {
+      lightboxDate.hidden = true;
+    }
 
     if (lightboxLastFocused && typeof lightboxLastFocused.focus === 'function') {
       lightboxLastFocused.focus();
