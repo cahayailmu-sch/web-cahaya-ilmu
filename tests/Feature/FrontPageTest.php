@@ -117,6 +117,7 @@ class FrontPageTest extends TestCase
             'image' => 'https://example.com/galeri.jpg',
             'category' => 'Fasilitas',
             'level' => 'Umum',
+            'taken_at' => '2026-10-15',
         ]);
 
         $response = $this->get(route('home'));
@@ -126,6 +127,8 @@ class FrontPageTest extends TestCase
             ->assertSee('data-counter="65"', false)
             ->assertSee('Berita Dinamis Cahaya Ilmu')
             ->assertSee('Foto Galeri Dinamis')
+            ->assertSee('15 Oktober 2026')
+            ->assertSee('gallery-caption-date', false)
             ->assertSee('0812-5000-0002')
             ->assertSee('window.CI_WHATSAPP', false)
             ->assertSee('Tumbuh Kembang di Atas Ilmu dan Amal')
@@ -482,7 +485,7 @@ class FrontPageTest extends TestCase
             ->assertSee('Halaman Sekolah Umum')
             ->assertSee('15 Oktober 2026')
             ->assertSee('data-date="15 Oktober 2026"', false)
-            ->assertSee('gallery-date-badge', false);
+            ->assertSee('gallery-caption-date', false);
 
         $this->get(route('gallery.index', ['jenjang' => 'SD']))
             ->assertOk()

@@ -816,14 +816,14 @@
                       data-date="{{ $gallery->documentationDateLabel() }}"
                       aria-label="Perbesar foto {{ $gallery->title }}">
                 <img src="{{ $gallery->imageUrl() }}" alt="{{ $gallery->title }}" width="900" height="700" loading="lazy" decoding="async" class="adaptive-img">
-                <span class="gallery-date-badge" title="Tanggal dokumentasi">
-                  <i class="fa-regular fa-calendar-days" aria-hidden="true"></i>
-                  <span>{{ $gallery->documentationDateLabel() }}</span>
-                </span>
                 <span class="gallery-zoom" aria-hidden="true"><i class="fa-solid fa-expand"></i></span>
                 <span class="gallery-caption">
                   <span class="gallery-caption-label">{{ $gallery->category }}</span>
                   <span class="gallery-caption-title">{{ $gallery->title }}</span>
+                  <span class="gallery-caption-date">
+                    <i class="fa-regular fa-calendar-days" aria-hidden="true"></i>
+                    {{ $gallery->documentationDateLabel() }}
+                  </span>
                 </span>
               </button>
             @endforeach

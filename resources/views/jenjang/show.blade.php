@@ -365,12 +365,12 @@
                    alt="{{ $gallery->title }} - {{ $profile['short'] }}"
                    width="800" height="600" loading="lazy" decoding="async"
                    class="adaptive-img">
-              <span class="gallery-date-badge" title="Tanggal dokumentasi">
-                <i class="fa-regular fa-calendar-days" aria-hidden="true"></i>
-                <span>{{ $gallery->documentationDateLabel() }}</span>
-              </span>
               <span class="gallery-caption">
                 <span class="gallery-caption-title">{{ $gallery->title }}</span>
+                <span class="gallery-caption-date">
+                  <i class="fa-regular fa-calendar-days" aria-hidden="true"></i>
+                  {{ $gallery->documentationDateLabel() }}
+                </span>
                 <span class="gallery-caption-meta">
                   <span class="gallery-chip">{{ $gallery->category }}</span>
                   <span class="gallery-chip">{{ $gallery->level }}</span>
