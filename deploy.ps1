@@ -32,7 +32,8 @@ function Assert-NativeSuccess {
 function Invoke-RemoteScript {
     param([string]$Script)
 
-    $encodedScript = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($Script))
+    $normalizedScript = $Script.Replace("`r`n", "`n").Replace("`r", "`n")
+    $encodedScript = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($normalizedScript))
     $remoteCommand = "echo '$encodedScript' | base64 -d | bash"
 
     & ssh -p $RemotePort "$RemoteUser@$RemoteHost" $remoteCommand
@@ -167,10 +168,7 @@ php artisan optimize
 echo "Deploy server selesai."
 '@
 
-    $remoteScript = $remoteScript
-        .Replace('__REMOTE_PATH__', $RemotePath)
-        .Replace('__BUNDLE_PATH__', $bundleRemotePath)
-        .Replace('__BRANCH__', $Branch)
+    $remoteScript = $remoteScript.Replace('__REMOTE_PATH__', $RemotePath).Replace('__BUNDLE_PATH__', $bundleRemotePath).Replace('__BRANCH__', $Branch)
 
     Write-Section "Deploy ke server $RemoteUser@$RemoteHost"
     Invoke-RemoteScript $remoteScript

@@ -1417,8 +1417,9 @@
             <span class="eyebrow">Pertanyaan Umum</span>
             <h2 class="section-title mt-4">Masih ada yang ingin ditanyakan?</h2>
             <p class="section-lead">
-              Berikut beberapa pertanyaan yang sering diajukan orang tua. Jika belum terjawab,
-              silakan hubungi panitia SPMB.
+              Berikut beberapa pertanyaan yang sering diajukan orang tua seputar alur SPMB,
+              jenjang pendidikan, kurikulum, ekstrakurikuler, serta biaya pendidikan. Jika belum
+              terjawab, silakan hubungi panitia SPMB melalui tombol WhatsApp resmi atau bagian Kontak.
             </p>
             <a href="{{ url('/#kontak') }}" class="btn btn-outline mt-6 w-full sm:w-auto">
               <i class="fa-solid fa-address-book text-base text-rose-600"></i> Lihat Kontak Admin per Jenjang
@@ -1428,13 +1429,19 @@
           <div class="reveal">
             <div class="faq-item is-open">
               <button type="button" class="faq-question" aria-expanded="true" aria-controls="faq-1">
-                <span>Kapan pendaftaran SPMB dibuka dan apakah ada gelombang ke-2?</span>
+                <span>Kapan pendaftaran SPMB dibuka, bagaimana alurnya, dan apakah ada gelombang ke-2?</span>
                 <span class="faq-icon"><i class="fa-solid fa-plus" aria-hidden="true"></i></span>
               </button>
               <div id="faq-1" class="faq-answer">
                 <div class="faq-answer-inner">
-                  Pendaftaran SPMB Tahun Ajaran 2027/2028 dibuka hanya dalam <strong>1 gelombang</strong> (tidak ada gelombang 2).
-                  Kami menyarankan orang tua segera mendaftarkan ananda saat pendaftaran dibuka karena daya tampung setiap jenjang terbatas.
+                  Pendaftaran SPMB Tahun Ajaran {{ $settings['tahun_ajaran'] ?? '2027/2028' }} di
+                  <strong>Cahaya Ilmu Islamic School Balikpapan</strong> (di bawah naungan
+                  <strong>{{ $foundationName }}</strong>) untuk 4 unit jenjang pendidikan terpadu
+                  (<strong>KB-TK, SD, SMP, dan SMA</strong>) dibuka hanya dalam <strong>1 gelombang</strong>
+                  (tidak ada gelombang 2). Pendaftaran dilakukan secara online melalui menu
+                  <strong>Daftar SPMB</strong> di website resmi (<code>cahayailmu-bpn.id/ppdb</code>) dengan
+                  memilih jenjang yang kuotanya tersedia, mengisi formulir data calon murid &amp; orang tua,
+                  serta mengikuti tahapan verifikasi/observasi sesuai informasi dari panitia SPMB.
                 </div>
               </div>
             </div>
@@ -1446,48 +1453,63 @@
               </button>
               <div id="faq-2" class="faq-answer">
                 <div class="faq-answer-inner">
-                  Observasi calon peserta didik dilakukan secara sederhana sesuai usia dan nalar anak untuk memetakan kesiapan kognitif serta sosial-emosional (dasar baca-tulis-hitung, pengenalan huruf hijaiyyah, motorik halus &amp; kasar, serta sikap sosial-emosional). Sementara wawancara orang tua bertujuan membangun sinergi pola asuh, prinsip beragama, dan komitmen pendampingan ananda di rumah.
+                  Observasi calon peserta didik dilakukan secara ramah anak sesuai usia dan nalar anak untuk
+                  memetakan kesiapan kognitif serta sosial-emosional (dasar baca-tulis-hitung, pengenalan huruf
+                  hijaiyyah, motorik halus &amp; kasar, serta sikap sosial-emosional). Sementara wawancara orang
+                  tua bertujuan membangun sinergi pola asuh, prinsip beragama, dan komitmen pendampingan ananda
+                  di rumah selaras dengan motto <em>&ldquo;{{ $motto }}&rdquo;</em>.
                 </div>
               </div>
             </div>
 
             <div class="faq-item">
               <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-3">
-                <span>Dokumen apa saja yang perlu disiapkan?</span>
+                <span>Dokumen dan syarat apa saja yang perlu disiapkan?</span>
                 <span class="faq-icon"><i class="fa-solid fa-plus" aria-hidden="true"></i></span>
               </button>
               <div id="faq-3" class="faq-answer">
                 <div class="faq-answer-inner">
-                  Siapkan fotokopi Kartu Keluarga, akta kelahiran, foto 3&times;4, dan rapor
-                  terakhir untuk jenjang SD/SMP/SMA. Bila siswa pindahan, sertakan surat
-                  keterangan pindah. Panitia akan mengonfirmasi kelengkapan berkas.
+                  Siapkan fotokopi <strong>Kartu Keluarga (KK)</strong>, <strong>Akta Kelahiran</strong>,
+                  <strong>KTP orang tua/wali</strong>, pasfoto terbaru, serta rapor/ijazah terakhir untuk jenjang
+                  <strong>SD, SMP, dan SMA</strong> (khusus <em>banaat</em>/putri). Bila siswa pindahan, sertakan
+                  surat keterangan pindah. Pastikan usia calon murid memenuhi ketentuan minimal per jenjang;
+                  panitia SPMB akan mengonfirmasi kelengkapan berkas melalui WhatsApp.
                 </div>
               </div>
             </div>
 
             <div class="faq-item">
               <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-4">
-                <span>Bagaimana informasi biaya pendidikan?</span>
+                <span>Kurikulum dan ekstrakurikuler apa saja yang tersedia di setiap jenjang?</span>
                 <span class="faq-icon"><i class="fa-solid fa-plus" aria-hidden="true"></i></span>
               </button>
               <div id="faq-4" class="faq-answer">
                 <div class="faq-answer-inner">
-                  Informasi biaya pendaftaran, uang pangkal, dan SPP disampaikan langsung oleh
-                  panitia agar sesuai jenjang dan program yang dipilih. Silakan hubungi
-                  WhatsApp panitia untuk mendapatkan rincian resmi.
+                  Cahaya Ilmu memadukan <strong>Kurikulum Nasional (Kurikulum Merdeka)</strong> dengan
+                  <strong>program keislaman terpadu</strong> (<strong>Tahfidz Al-Qur'an, Hadits Arba'in An-Nawawi,
+                  Doa Harian</strong>, pembiasaan ibadah &amp; adab Islami, serta <strong>Bahasa Arab &amp; Inggris</strong>).
+                  Kegiatan ekstrakurikuler mencakup <strong>Ekstrakurikuler Renang</strong> dengan pembinaan terstruktur,
+                  <strong>Panahan (<em>Archery</em>) &amp; Berkuda</strong>, <strong>Futsal &amp; Olahraga</strong>
+                  (Tenis Meja, Karate Wadokai, Olahraga Ceria), <strong>Pramuka / Kepanduan</strong>,
+                  <strong>Tata Boga</strong>, <strong>Crafting / Sains &amp; Kreativitas</strong>,
+                  <strong>IT Club</strong>, hingga <strong>Multimedia</strong> (khusus SMA <em>Banaat</em>/Putri)
+                  sesuai jenjangnya.
                 </div>
               </div>
             </div>
 
             <div class="faq-item">
               <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-5">
-                <span>Apakah bisa mendaftar di luar jadwal gelombang 1?</span>
+                <span>Bagaimana informasi biaya pendidikan dan cara menghubungi panitia SPMB?</span>
                 <span class="faq-icon"><i class="fa-solid fa-plus" aria-hidden="true"></i></span>
               </button>
               <div id="faq-5" class="faq-answer">
                 <div class="faq-answer-inner">
-                  Pendaftaran di luar jadwal dapat dilakukan bila kuota masih tersedia. Hubungi
-                  panitia untuk mengetahui ketersediaan kursi pada jenjang yang dituju.
+                  Rincian biaya pendaftaran formulir awal ditampilkan otomatis saat memilih jenjang pada formulir
+                  online, sedangkan rincian uang pangkal dan SPP disampaikan secara transparan sesuai jenjang yang
+                  dipilih (serta tercantum pada bagian syarat KB-TK dan formulir tahap kedua). Untuk konsultasi
+                  biaya atau ketersediaan kuota, silakan klik <strong>tombol WhatsApp resmi</strong> atau kunjungi
+                  bagian <strong>Kontak</strong> di website ini untuk menghubungi admin jenjang terkait.
                 </div>
               </div>
             </div>

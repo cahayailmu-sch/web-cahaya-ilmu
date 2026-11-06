@@ -1050,9 +1050,9 @@
             <span class="eyebrow">Pertanyaan Umum</span>
             <h2 class="section-title mt-4">Hal yang sering ditanyakan orang tua.</h2>
             <p class="section-lead">
-              Berikut jawaban singkat seputar kurikulum, program Bahasa Arab dan Tahfidz,
-              ekstrakurikuler, serta lokasi sekolah. Jika masih ada pertanyaan, silakan
-              hubungi admin kami.
+              Berikut jawaban singkat seputar jenjang pendidikan, kurikulum &amp; program keislaman,
+              ekstrakurikuler, alur pendaftaran SPMB, serta lokasi dan kontak resmi sekolah. Jika masih
+              ada pertanyaan, silakan hubungi admin kami melalui tombol WhatsApp atau bagian Kontak.
             </p>
             <a href="#kontak" class="btn btn-outline mt-6 w-full sm:w-auto">
               <i class="fa-solid fa-address-book text-base text-rose-600" aria-hidden="true"></i>
@@ -1062,33 +1062,51 @@
 
           <div class="reveal">
             <div class="faq-item is-open">
-              <button type="button" class="faq-question" aria-expanded="true" aria-controls="faq-kurikulum">
+              <button type="button" class="faq-question" aria-expanded="true" aria-controls="faq-jenjang">
+                <span>Jenjang pendidikan apa saja yang tersedia di Cahaya Ilmu Islamic School?</span>
+                <span class="faq-icon"><i class="fa-solid fa-plus" aria-hidden="true"></i></span>
+              </button>
+              <div id="faq-jenjang" class="faq-answer">
+                <div class="faq-answer-inner">
+                  <strong>Cahaya Ilmu Islamic School Balikpapan</strong> (di bawah naungan <strong>{{ $foundationName }}</strong>)
+                  menyelenggarakan <strong>4 unit jenjang pendidikan terpadu</strong>, yaitu <strong>KB-TK</strong>
+                  (Kelompok Bermain, TK A, dan TK B), <strong>SD</strong> (Kelas 1&ndash;6), <strong>SMP</strong>
+                  (Kelas 7&ndash;9), serta <strong>SMA</strong> (Kelas 10&ndash;12 khusus <em>banaat</em> / putri).
+                  Seluruh jenjang dirancang berkesinambungan untuk mendampingi tumbuh kembang ilmu, iman, dan adab ananda.
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-kurikulum">
                 <span>Kurikulum apa yang diterapkan di Cahaya Ilmu?</span>
                 <span class="faq-icon"><i class="fa-solid fa-plus" aria-hidden="true"></i></span>
               </button>
               <div id="faq-kurikulum" class="faq-answer">
                 <div class="faq-answer-inner">
-                  Kami memadukan Kurikulum Merdeka dengan pendidikan agama Islam, pembiasaan
-                  adab, serta penguatan literasi dan numerasi. Pembelajaran dirancang aktif dan
-                  menyenangkan, dengan pendampingan guru di setiap jenjang agar tumbuh kembang
-                  anak tetap terarah.
+                  Kami menerapkan perpaduan <strong>Kurikulum Nasional (Kurikulum Merdeka)</strong> dengan
+                  <strong>program keislaman terpadu</strong> yang mencakup <strong>Tahfidz Al-Qur'an</strong>,
+                  hafalan <strong>Hadits Arba'in An-Nawawi</strong>, <strong>Doa Harian</strong> sesuai sunnah,
+                  serta pembiasaan ibadah dan adab Islami. Berlandaskan motto
+                  <em>&ldquo;{{ $motto }}&rdquo;</em>, pembelajaran dirancang aktif dan terarah dengan
+                  penguatan literasi, numerasi, serta pendampingan guru di setiap jenjang.
                 </div>
               </div>
             </div>
 
             <div class="faq-item">
               <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-tahfidz">
-                <span>Bagaimana program Bahasa Arab dan Tahfidz?</span>
+                <span>Bagaimana program Bahasa Arab, Inggris, dan Tahfidz dijalankan?</span>
                 <span class="faq-icon"><i class="fa-solid fa-plus" aria-hidden="true"></i></span>
               </button>
               <div id="faq-tahfidz" class="faq-answer">
                 <div class="faq-answer-inner">
-                  Program Tahfidz Terpadu dimulai dari tahsin, lalu hafalan Al-Qur'an bertahap sesuai
-                  jenjang dengan target juz yang terukur. Selain Al-Qur'an, siswa juga menghafal
-                  Hadits Arba'in An-Nawawi dan doa-doa harian sesuai sunnah yang dipraktikkan dalam
-                  keseharian. Ada halaqah dan murajaah rutin untuk menjaga hafalan. Bahasa Arab
-                  dipelajari melalui kosakata, percakapan sederhana, dan pembiasaan sehari-hari
-                  bersama guru pendamping.
+                  <strong>Program Tahfidz Terpadu</strong> dimulai dari perbaikan bacaan (<em>tahsin</em>), lalu
+                  hafalan Al-Qur'an bertahap sesuai jenjang melalui halaqah kecil dan <em>murajaah</em> rutin bersama
+                  guru pembina. Selain Al-Qur'an, siswa juga menghafal <strong>Hadits Arba'in An-Nawawi</strong> dan
+                  <strong>Doa Harian</strong> sesuai sunnah yang dipraktikkan dalam keseharian. Adapun program
+                  <strong>Bahasa Arab &amp; Inggris Aktif</strong> dibiasakan melalui pengenalan kosakata, percakapan
+                  harian, serta latihan <em>public speaking</em>.
                 </div>
               </div>
             </div>
@@ -1100,24 +1118,46 @@
               </button>
               <div id="faq-ekskul" class="faq-answer">
                 <div class="faq-answer-inner">
-                  Tersedia beragam pilihan seperti Pramuka, futsal, badminton, panahan, robotik,
-                  seni kaligrafi, English Club, dan klub Tahfidz. Pilihan kegiatan menyesuaikan
-                  jenjang, minat siswa, serta jadwal sekolah. Informasi pendaftaran ekstrakurikuler
-                  disampaikan di awal tahun ajaran.
+                  Cahaya Ilmu Islamic School menghadirkan beragam kegiatan ekstrakurikuler dan pengembangan bakat
+                  sesuai jenjangnya, meliputi <strong>Ekstrakurikuler Renang</strong> dengan pembinaan terstruktur,
+                  <strong>Panahan (<em>Archery</em>) &amp; Berkuda</strong>, <strong>Futsal &amp; Olahraga</strong>
+                  (Tenis Meja, Karate Wadokai, serta Olahraga Ceria), <strong>Pramuka / Kepanduan</strong>,
+                  <strong>Tata Boga</strong>, <strong>Crafting / Sains &amp; Kreativitas</strong>,
+                  <strong>IT Club</strong>, hingga <strong>Multimedia</strong> (khusus jenjang SMA <em>Banaat</em>/Putri),
+                  yang seluruhnya bersinergi dengan program unggulan <strong>Tahfidz Al-Qur'an</strong> serta
+                  <strong>Bahasa Arab &amp; Inggris</strong>.
+                </div>
+              </div>
+            </div>
+
+            <div class="faq-item">
+              <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-spmb">
+                <span>Bagaimana alur dan syarat pendaftaran SPMB di Cahaya Ilmu?</span>
+                <span class="faq-icon"><i class="fa-solid fa-plus" aria-hidden="true"></i></span>
+              </button>
+              <div id="faq-spmb" class="faq-answer">
+                <div class="faq-answer-inner">
+                  Pendaftaran dapat dilakukan secara online melalui menu <strong>Daftar SPMB</strong> di website resmi
+                  (<code>cahayailmu-bpn.id/ppdb</code>) dengan memilih jenjang (<strong>KB-TK, SD, SMP, atau SMA</strong>)
+                  yang kuotanya tersedia, mengisi formulir data calon murid &amp; orang tua/wali beserta bukti pembayaran
+                  formulir, serta mengikuti tahapan verifikasi berkas, observasi calon murid, dan wawancara orang tua
+                  sesuai informasi dari panitia SPMB.
                 </div>
               </div>
             </div>
 
             <div class="faq-item">
               <button type="button" class="faq-question" aria-expanded="false" aria-controls="faq-lokasi">
-                <span>Di mana lokasi sekolah dan bagaimana aksesnya?</span>
+                <span>Di mana lokasi sekolah dan bagaimana cara menghubungi admin?</span>
                 <span class="faq-icon"><i class="fa-solid fa-plus" aria-hidden="true"></i></span>
               </button>
               <div id="faq-lokasi" class="faq-answer">
                 <div class="faq-answer-inner">
-                  Cahaya Ilmu Islamic School berada di Jl. Syarifuddin Yoes RT. 41 komp. Masjid Al imam an Nasa'i Kel. Gunung bahagia kec. Balikpapan Selatan 76114. Lokasinya mudah dijangkau dari pusat
-                  kota. Anda dapat membuka tautan Google Maps di bagian kontak atau menghubungi
-                  admin untuk petunjuk arah.
+                  <strong>Cahaya Ilmu Islamic School Balikpapan</strong> beralamat di
+                  {{ $settings['alamat_sekolah'] ?? "Jl. Syarifuddin Yoes RT. 41 komp. Masjid Al-Imam An-Nasa'i Kel. Gunung bahagia Kec. Balikpapan Selatan 76114" }}.
+                  Lokasinya strategis dan mudah dijangkau. Untuk informasi lebih lanjut atau petunjuk arah, silakan
+                  klik <strong>tombol WhatsApp resmi</strong> atau kunjungi bagian <strong>Kontak &amp; Media Sosial</strong>
+                  di website ini untuk terhubung langsung dengan admin masing-masing jenjang.
                 </div>
               </div>
             </div>

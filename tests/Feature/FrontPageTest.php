@@ -1305,4 +1305,31 @@ class FrontPageTest extends TestCase
             ->assertSee('https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg', false)
             ->assertSee('fa-solid fa-play', false);
     }
+
+    public function test_faq_sections_on_home_and_ppdb_reflect_actual_school_programs_and_remove_placeholders(): void
+    {
+        $this->createSettings();
+
+        foreach ([route('home'), route('ppdb')] as $url) {
+            $this->get($url)
+                ->assertOk()
+                ->assertSee('Ekstrakurikuler Renang')
+                ->assertSee('Panahan')
+                ->assertSee('Archery')
+                ->assertSee('Futsal')
+                ->assertSee('Pramuka / Kepanduan')
+                ->assertSee('Crafting / Sains &amp; Kreativitas', false)
+                ->assertSee('IT Club')
+                ->assertSee('Multimedia')
+                ->assertSee('4 unit jenjang pendidikan terpadu')
+                ->assertSee('Kurikulum Nasional (Kurikulum Merdeka)')
+                ->assertSee('Tumbuh Kembang di Atas Ilmu dan Amal')
+                ->assertSee('cahayailmu-bpn.id/ppdb')
+                ->assertDontSee('0542-123-4567')
+                ->assertDontSee('badminton')
+                ->assertDontSee('robotik')
+                ->assertDontSee('seni kaligrafi')
+                ->assertDontSee('English Club');
+        }
+    }
 }
