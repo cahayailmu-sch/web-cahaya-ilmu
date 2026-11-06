@@ -42,6 +42,7 @@
             "npm install --ignore-scripts",
             "npm run build"
         ],
+        "deploy": "powershell -NoProfile -ExecutionPolicy Bypass -File deploy.ps1",
         "dev": [
             "Composer\\Config::disableProcessTimeout",
             "@php artisan dev"
