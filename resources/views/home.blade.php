@@ -150,10 +150,6 @@
 
       <!-- CTA desktop -->
       <div class="hidden items-center gap-2 lg:flex">
-        <a href="tel:+625421234567" class="hidden items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-slate-600 transition hover:bg-brand-50 hover:text-brand-700 2xl:inline-flex">
-          <i class="fa-solid fa-phone text-brand-600" aria-hidden="true"></i>
-          0542-123-4567
-        </a>
         <a href="{{ route('ppdb') }}" class="btn btn-primary">
           Daftar SPMB
           <i class="fa-solid fa-arrow-right text-[11px]" aria-hidden="true"></i>
