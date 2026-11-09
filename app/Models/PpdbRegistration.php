@@ -211,11 +211,31 @@ class PpdbRegistration extends Model
     /**
      * Get the education fee options for the registration level.
      *
-     * @return array{uang_masuk: array<int, int>, spp: array<int, int>, konsumsi: int}
+     * @return array<string, mixed>
      */
     public function feeOptions(): array
     {
         return config("spmb.fees.{$this->level}", config('spmb.fees.SD'));
+    }
+
+    /**
+     * Get the gender-specific fee breakdown for the SD level.
+     *
+     * SD uses separate official schemes for Baniin (L) and Banaat (P).
+     * Every other level keeps its single fee scheme and returns null.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function sdFeeDetail(): ?array
+    {
+        if ($this->level !== 'SD') {
+            return null;
+        }
+
+        $genders = (array) config('spmb.fees.SD.genders', []);
+        $gender = $this->gender === 'P' ? 'P' : 'L';
+
+        return $genders[$gender] ?? null;
     }
 
     /**

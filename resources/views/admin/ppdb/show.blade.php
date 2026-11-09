@@ -217,6 +217,10 @@
                     $sppNominal = $feesConfig['spp'][$pSpp] ?? 0;
                     $konsumsiNominal = $feesConfig['konsumsi'] ?? 0;
                     $isTkRegistration = $registration->level === 'TK';
+                    $isSdRegistration = $registration->level === 'SD';
+                    $sdFeeDetail = $registration->sdFeeDetail();
+                    $sdUangPangkal = $sdFeeDetail['uang_pangkal'][$pUang] ?? 0;
+                    $sdPerlengkapan = $sdFeeDetail['perlengkapan']['total'] ?? 0;
                     $installmentCount = $registration->installmentCount();
                     $installmentDeadline = \App\Models\SchoolSetting::installmentDeadlineLabel();
                     $pickupsList = $registration->full_form_data['penjemput'] ?? [];
@@ -380,41 +384,93 @@
                 <!-- Pilihan Biaya Pendidikan -->
                 <div>
                     <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">D. Pilihan Biaya Pendidikan &amp; Kesanggupan</h3>
-                    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs bg-slate-50/60 p-4 rounded-xl">
-                        <div>
-                            <span class="text-slate-400">{{ $isTkRegistration ? 'Biaya Masuk (Uang Pangkal + Perlengkapan + Pertahun)' : 'Pilihan Biaya Masuk (Sarana)' }}</span>
-                            <p class="font-extrabold text-slate-900 text-sm mt-0.5">
-                                Rp {{ number_format((int) $uangNominal, 0, ',', '.') }}@unless ($isTkRegistration) (Pilihan {{ $pUang }})@endunless
-                            </p>
-                        </div>
-                        <div>
-                            <span class="text-slate-400">{{ $isTkRegistration ? 'SPP Bulanan' : 'Pilihan Iuran SPP Bulanan' }}</span>
-                            <p class="font-extrabold text-slate-900 text-sm mt-0.5">
-                                Rp {{ number_format((int) $sppNominal, 0, ',', '.') }}@unless ($isTkRegistration) (Pilihan {{ $pSpp }})@endunless
-                            </p>
-                        </div>
-                        @if (! empty($konsumsiNominal))
+                    @if ($isSdRegistration)
+                        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs bg-slate-50/60 p-4 rounded-xl">
                             <div>
-                                <span class="text-slate-400">{{ $isTkRegistration ? 'Konsumsi (Snack) Bulanan' : 'Iuran Makan Siang / Konsumsi' }}</span>
+                                <span class="text-slate-400">Jenis Kelamin / Skema Biaya</span>
+                                <p class="font-extrabold text-brand-700 text-sm mt-0.5">{{ $sdFeeDetail['label'] ?? $registration->genderLabel() }}</p>
+                            </div>
+                            <div>
+                                <span class="text-slate-400">A. Uang Pangkal (Pilihan {{ $pUang }})</span>
+                                <p class="font-extrabold text-slate-900 text-sm mt-0.5">
+                                    Rp {{ number_format((int) $sdUangPangkal, 0, ',', '.') }}
+                                </p>
+                            </div>
+                            <div>
+                                <span class="text-slate-400">B. Perlengkapan Siswa</span>
+                                <p class="font-extrabold text-slate-900 text-sm mt-0.5">
+                                    Rp {{ number_format((int) $sdPerlengkapan, 0, ',', '.') }}
+                                </p>
+                            </div>
+                            <div>
+                                <span class="text-slate-400">C. Total Uang Masuk / Keseluruhan (A + B)</span>
+                                <p class="font-extrabold text-brand-700 text-sm mt-0.5">
+                                    Rp {{ number_format((int) $uangNominal, 0, ',', '.') }} (Pilihan {{ $pUang }})
+                                </p>
+                            </div>
+                            <div>
+                                <span class="text-slate-400">D.a Pilihan Iuran SPP Bulanan</span>
+                                <p class="font-extrabold text-slate-900 text-sm mt-0.5">
+                                    Rp {{ number_format((int) $sppNominal, 0, ',', '.') }} (Pilihan {{ $pSpp }})
+                                </p>
+                            </div>
+                            <div>
+                                <span class="text-slate-400">D.b Iuran Makan Siang / Konsumsi</span>
                                 <p class="font-extrabold text-slate-900 text-sm mt-0.5">
                                     Rp {{ number_format((int) $konsumsiNominal, 0, ',', '.') }}
                                 </p>
                             </div>
-                        @endif
-                        <div>
-                            <span class="text-slate-400">Metode Pembayaran Biaya Masuk</span>
-                            <p class="font-extrabold text-brand-700 text-sm mt-0.5">
-                                {{ $registration->formValue('cara_bayar', 'Cash') === 'Dicicil'
-                                    ? 'Dicicil (' . ($installmentCount ?? 3) . ' kali)'
-                                    : 'Lunas / Cash' }}
-                            </p>
-                            @if ($registration->formValue('cara_bayar', 'Cash') === 'Dicicil')
-                                <p class="mt-1 text-[10px] font-semibold text-slate-500">
-                                    Batas akhir pelunasan: {{ $installmentDeadline }}
+                            <div>
+                                <span class="text-slate-400">Metode Pembayaran Biaya Masuk</span>
+                                <p class="font-extrabold text-brand-700 text-sm mt-0.5">
+                                    {{ $registration->formValue('cara_bayar', 'Cash') === 'Dicicil'
+                                        ? 'Dicicil (' . ($installmentCount ?? 3) . ' kali)'
+                                        : 'Lunas / Cash' }}
                                 </p>
-                            @endif
+                                @if ($registration->formValue('cara_bayar', 'Cash') === 'Dicicil')
+                                    <p class="mt-1 text-[10px] font-semibold text-slate-500">
+                                        Batas akhir pelunasan: {{ $installmentDeadline }}
+                                    </p>
+                                @endif
+                            </div>
                         </div>
-                    </div>
+                    @else
+                        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs bg-slate-50/60 p-4 rounded-xl">
+                            <div>
+                                <span class="text-slate-400">{{ $isTkRegistration ? 'Biaya Masuk (Uang Pangkal + Perlengkapan + Pertahun)' : 'Pilihan Biaya Masuk (Sarana)' }}</span>
+                                <p class="font-extrabold text-slate-900 text-sm mt-0.5">
+                                    Rp {{ number_format((int) $uangNominal, 0, ',', '.') }}@unless ($isTkRegistration) (Pilihan {{ $pUang }})@endunless
+                                </p>
+                            </div>
+                            <div>
+                                <span class="text-slate-400">{{ $isTkRegistration ? 'SPP Bulanan' : 'Pilihan Iuran SPP Bulanan' }}</span>
+                                <p class="font-extrabold text-slate-900 text-sm mt-0.5">
+                                    Rp {{ number_format((int) $sppNominal, 0, ',', '.') }}@unless ($isTkRegistration) (Pilihan {{ $pSpp }})@endunless
+                                </p>
+                            </div>
+                            @if (! empty($konsumsiNominal))
+                                <div>
+                                    <span class="text-slate-400">{{ $isTkRegistration ? 'Konsumsi (Snack) Bulanan' : 'Iuran Makan Siang / Konsumsi' }}</span>
+                                    <p class="font-extrabold text-slate-900 text-sm mt-0.5">
+                                        Rp {{ number_format((int) $konsumsiNominal, 0, ',', '.') }}
+                                    </p>
+                                </div>
+                            @endif
+                            <div>
+                                <span class="text-slate-400">Metode Pembayaran Biaya Masuk</span>
+                                <p class="font-extrabold text-brand-700 text-sm mt-0.5">
+                                    {{ $registration->formValue('cara_bayar', 'Cash') === 'Dicicil'
+                                        ? 'Dicicil (' . ($installmentCount ?? 3) . ' kali)'
+                                        : 'Lunas / Cash' }}
+                                </p>
+                                @if ($registration->formValue('cara_bayar', 'Cash') === 'Dicicil')
+                                    <p class="mt-1 text-[10px] font-semibold text-slate-500">
+                                        Batas akhir pelunasan: {{ $installmentDeadline }}
+                                    </p>
+                                @endif
+                            </div>
+                        </div>
+                    @endif
                     <div class="mt-3 text-xs text-slate-600 italic">
                         Penanggung Jawab Biaya: <strong>{{ $registration->formValue('pj_nama', $registration->parent_name) }}</strong>
                         @if ($ttdAyah = $registration->formValue('ttd_ayah'))

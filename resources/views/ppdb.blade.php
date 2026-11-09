@@ -620,6 +620,12 @@
                   </ul>
                 </div>
               </div>
+              <div class="border-t border-slate-100 px-5 py-5 sm:px-6">
+                <h4 class="mb-4 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.12em] text-slate-500">
+                  <i class="fa-solid fa-file-invoice-dollar text-brand-600" aria-hidden="true"></i> Rincian Biaya Masuk SD Islam Cahaya Ilmu
+                </h4>
+                @include('partials.spmb-sd-fee-detail', ['sdFee' => $spmbSdFee ?? config('spmb.fees.SD', [])])
+              </div>
               <div class="border-t border-slate-100 bg-slate-50 px-5 py-4 text-xs leading-6 text-slate-500 sm:px-6">
                 <i class="fa-solid fa-circle-info mr-1.5 text-brand-600" aria-hidden="true"></i>
                 Pastikan nomor WhatsApp yang diinput saat pendaftaran selalu aktif untuk koordinasi grup WhatsApp SPMB dan jadwal observasi.

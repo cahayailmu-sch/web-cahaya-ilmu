@@ -314,7 +314,10 @@ class TwoStagePpdbTest extends TestCase
             ->assertSee('Abdullah Rahman')
             ->assertSee('6471012345670001')
             ->assertSee('Sepinggan')
-            ->assertSee('Rp 11.000.000')
+            ->assertSee('Rp 8.680.000')
+            ->assertSee('Rp 2.820.000')
+            ->assertSee('Rp 11.500.000')
+            ->assertSee('Total Uang Masuk Keseluruhan (A + B)')
             ->assertSee('Buku cerita anak muslim')
             ->assertSee('Cepat menghafal kosakata')
             ->assertSee('Sangat sebanding dengan kualitas pendidikan')
@@ -331,6 +334,13 @@ class TwoStagePpdbTest extends TestCase
         $adminPrint = $this->actingAs($admin)->get(route('admin.ppdb.print', $registration));
         $adminPrint->assertOk()
             ->assertSee('FORMULIR PENDAFTARAN PESERTA DIDIK BARU');
+
+        $adminShow = $this->actingAs($admin)->get(route('admin.ppdb.show', $registration));
+        $adminShow->assertOk()
+            ->assertSee('Siswa Baniin (Putra)')
+            ->assertSee('Rp 8.680.000')
+            ->assertSee('Rp 2.820.000')
+            ->assertSee('Rp 11.500.000');
 
         $adminPdf = $this->actingAs($admin)->get(route('admin.ppdb.pdf', $registration));
         $adminPdf->assertOk();

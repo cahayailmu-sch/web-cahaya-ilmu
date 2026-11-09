@@ -205,6 +205,35 @@
     </section>
   @endif
 
+  @if ($profile['slug'] === 'sd' && ! empty($spmbSdFee))
+    <section id="spmb-sd" class="section-pad scroll-mt-24 bg-white">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="section-heading max-w-3xl">
+          <span class="eyebrow">SPMB {{ $spmbSdFee['school_year'] ?? \App\Models\SchoolSetting::activeSchoolYear() }}</span>
+          <h2 class="section-title mt-4">Rincian Biaya {{ $spmbSdFee['name'] ?? 'SD Islam Cahaya Ilmu' }}.</h2>
+          <p class="section-lead">
+            Rincian biaya masuk resmi {{ $spmbSdFee['name'] ?? 'SD Islam Cahaya Ilmu' }} Tahun Ajaran
+            {{ $spmbSdFee['school_year'] ?? \App\Models\SchoolSetting::activeSchoolYear() }} untuk
+            siswa Baniin (putra) dan Banaat (putri), lengkap dengan pilihan paket biaya dan catatan penting.
+          </p>
+        </div>
+
+        <div class="mt-8">
+          @include('partials.spmb-sd-fee-detail', ['sdFee' => $spmbSdFee])
+        </div>
+
+        <div class="mt-5 flex flex-wrap items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-5 sm:p-6">
+          <a href="{{ route('ppdb', ['jenjang' => 'SD']) }}" class="btn btn-primary">
+            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Daftar SPMB SD
+          </a>
+          <a href="{{ url('/#kontak') }}" class="btn btn-outline">
+            <i class="fa-solid fa-address-book" aria-hidden="true"></i> Hubungi Admin SD
+          </a>
+        </div>
+      </div>
+    </section>
+  @endif
+
   <section class="section-pad bg-white">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="grid gap-10 lg:grid-cols-[1.3fr_0.7fr] lg:items-start">

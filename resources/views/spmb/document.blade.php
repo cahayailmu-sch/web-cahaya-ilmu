@@ -648,8 +648,12 @@
   <div class="section-heading">Rincian Kesanggupan Biaya Pendidikan Yang Disetujui</div>
   @php
     $isTkDocument = $registration->level === 'TK';
+    $isSdDocument = $registration->level === 'SD';
+    $sdFeeDetail = $registration->sdFeeDetail();
     $pilihanUangMasuk = (int) ($registration->formValue('pilihan_uang_masuk', 1));
     $nominalUangMasuk = $fees['uang_masuk'][$pilihanUangMasuk] ?? 0;
+    $sdUangPangkal = $sdFeeDetail['uang_pangkal'][$pilihanUangMasuk] ?? 0;
+    $sdPerlengkapan = $sdFeeDetail['perlengkapan']['total'] ?? 0;
     $pilihanSpp = (int) ($registration->formValue('pilihan_spp', 1));
     $nominalSpp = $fees['spp'][$pilihanSpp] ?? 0;
     $caraBayar = $registration->formValue('cara_bayar', 'Cash');
@@ -666,11 +670,29 @@
       </tr>
     </thead>
     <tbody>
-      <tr>
-        <td><strong>{{ $isTkDocument ? 'Biaya Masuk (Uang Pangkal + Perlengkapan + Pertahun)' : 'Uang Masuk / Sarana & Gedung' }}</strong></td>
-        <td>{{ $isTkDocument ? 'Biaya Resmi' : 'Pilihan '.$pilihanUangMasuk }}</td>
-        <td><strong>Rp {{ number_format($nominalUangMasuk, 0, ',', '.') }}</strong></td>
-      </tr>
+      @if ($isSdDocument)
+        <tr>
+          <td><strong>A. Uang Pangkal / Operasional Sekolah</strong></td>
+          <td>Pilihan {{ $pilihanUangMasuk }} &mdash; {{ $sdFeeDetail['label'] ?? $registration->genderLabel() }}</td>
+          <td><strong>Rp {{ number_format($sdUangPangkal, 0, ',', '.') }}</strong></td>
+        </tr>
+        <tr>
+          <td><strong>B. Perlengkapan Siswa</strong></td>
+          <td>Wajib sebelum daftar ulang</td>
+          <td><strong>Rp {{ number_format($sdPerlengkapan, 0, ',', '.') }}</strong></td>
+        </tr>
+        <tr>
+          <td><strong>C. Total Uang Masuk Keseluruhan (A + B)</strong></td>
+          <td>Pilihan {{ $pilihanUangMasuk }}</td>
+          <td><strong>Rp {{ number_format($nominalUangMasuk, 0, ',', '.') }}</strong></td>
+        </tr>
+      @else
+        <tr>
+          <td><strong>{{ $isTkDocument ? 'Biaya Masuk (Uang Pangkal + Perlengkapan + Pertahun)' : 'Uang Masuk / Sarana & Gedung' }}</strong></td>
+          <td>{{ $isTkDocument ? 'Biaya Resmi' : 'Pilihan '.$pilihanUangMasuk }}</td>
+          <td><strong>Rp {{ number_format($nominalUangMasuk, 0, ',', '.') }}</strong></td>
+        </tr>
+      @endif
       <tr>
         <td><strong>Iuran SPP Bulanan</strong></td>
         <td>{{ $isTkDocument ? 'Biaya Resmi' : 'Pilihan '.$pilihanSpp }}</td>
@@ -708,6 +730,14 @@
       @endif
     </tbody>
   </table>
+
+  @if ($isSdDocument && ! empty(config('spmb.fees.SD.notes')))
+    <ul style="margin: 0 0 12px 16px; padding: 0; font-size: 10px; line-height: 1.5;">
+      @foreach ((array) config('spmb.fees.SD.notes') as $note)
+        <li>(-) {{ $note }}</li>
+      @endforeach
+    </ul>
+  @endif
 
   @if ($isTkDocument)
     <table class="data-table compact-table" style="margin-bottom: 10px;">

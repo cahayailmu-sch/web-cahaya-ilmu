@@ -929,8 +929,43 @@ class FrontPageTest extends TestCase
                 ->assertSee('Juni 2027')
                 ->assertDontSee('Rp 10.000.000')
                 ->assertDontSee('Rp 11.000.000')
-                ->assertDontSee('Rp 12.000.000')
-                ->assertDontSee('Rp 170.000');
+                ->assertDontSee('Rp 12.000.000');
+        }
+
+        $this->get(route('jenjang.show', 'tk'))
+            ->assertOk()
+            ->assertDontSee('Rp 170.000');
+    }
+
+    public function test_sd_fee_detail_matches_official_school_year_2027_2028_scheme(): void
+    {
+        $this->createSettings([
+            'tahun_ajaran' => '2027/2028',
+        ]);
+
+        foreach ([route('ppdb'), route('jenjang.show', 'sd')] as $url) {
+            $this->get($url)
+                ->assertOk()
+                ->assertSee('Siswa Baniin (Putra)')
+                ->assertSee('Siswa Banaat (Putri)')
+                ->assertSee('Rp 7.680.000')
+                ->assertSee('Rp 8.680.000')
+                ->assertSee('Rp 9.680.000')
+                ->assertSee('Rp 7.250.000')
+                ->assertSee('Rp 8.250.000')
+                ->assertSee('Rp 9.250.000')
+                ->assertSee('Rp 2.820.000')
+                ->assertSee('Rp 3.250.000')
+                ->assertSee('Rp 10.500.000')
+                ->assertSee('Rp 11.500.000')
+                ->assertSee('Rp 12.500.000')
+                ->assertSee('Rp 550.000')
+                ->assertSee('Rp 650.000')
+                ->assertSee('Rp 750.000')
+                ->assertSee('Rp 170.000')
+                ->assertSee('Uang Perlengkapan Siswa (B) wajib dilunasi sebagai syarat daftar ulang')
+                ->assertSee('Total Uang Masuk Keseluruhan (C) belum termasuk SPP dan Konsumsi (D)')
+                ->assertSee('Total Uang Masuk Keseluruhan (C) dilunasi sebelum Tahun Ajaran Baru');
         }
     }
 

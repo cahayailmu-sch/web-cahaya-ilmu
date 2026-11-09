@@ -71,10 +71,69 @@ return [
     | adjust the other levels here when their fee tables are finalised.
     */
     'fees' => [
+        /*
+        | SD Islam Cahaya Ilmu 2027/2028.
+        |
+        | "uang_masuk" stores the TOTAL Uang Masuk Keseluruhan (C = A + B)
+        | because it is identical for Baniin and Banaat per package. The
+        | gender-specific breakdown (A and B) lives in "genders" below.
+        */
         'SD' => [
-            'uang_masuk' => [1 => 10000000, 2 => 11000000, 3 => 12000000],
+            'school_year' => '2027/2028',
+            'name' => 'SD Islam Cahaya Ilmu',
+            'uang_masuk' => [1 => 10500000, 2 => 11500000, 3 => 12500000],
             'spp' => [1 => 550000, 2 => 650000, 3 => 750000],
             'konsumsi' => 170000,
+            'has_gender_variants' => true,
+            'notes' => [
+                'Uang Perlengkapan Siswa (B) wajib dilunasi sebagai syarat daftar ulang (Rp 2.820.000 untuk Siswa Baniin / Rp 3.250.000 untuk Siswa Banaat).',
+                'Total Uang Masuk Keseluruhan (C) belum termasuk SPP dan Konsumsi (D) di Tahun Ajaran Baru di bulan Juli 2027.',
+                'Total Uang Masuk Keseluruhan (C) dilunasi sebelum Tahun Ajaran Baru di bulan Juli 2027.',
+            ],
+            'genders' => [
+                'L' => [
+                    'label' => 'Siswa Baniin (Putra)',
+                    'short_label' => 'Baniin',
+                    'gender_label' => 'Laki-laki',
+                    'uang_pangkal' => [1 => 7680000, 2 => 8680000, 3 => 9680000],
+                    'perlengkapan' => [
+                        'seragam' => [
+                            ['label' => 'Blok nama, Logo, Baju dan Celana Sekolah, Seragam set Merah Putih, Khas Batik, Khas Ungu, Pramuka dan Baju Olahraga', 'amount' => 1450000],
+                            ['label' => 'Peralatan Makan', 'amount' => 50000],
+                            ['label' => 'Sampul Buku Raport', 'amount' => 130000],
+                        ],
+                        'tahunan' => [
+                            ['label' => 'Kegiatan (Field Trip, class meeting, MHH & MHQ, dll)', 'amount' => 300000],
+                            ['label' => 'Kegiatan UTS & UAS', 'amount' => 200000],
+                            ['label' => 'Buku Diniyah dan Tematik Umum', 'amount' => 690000],
+                        ],
+                        'seragam_total' => 1630000,
+                        'tahunan_total' => 1190000,
+                        'total' => 2820000,
+                    ],
+                ],
+                'P' => [
+                    'label' => 'Siswa Banaat (Putri)',
+                    'short_label' => 'Banaat',
+                    'gender_label' => 'Perempuan',
+                    'uang_pangkal' => [1 => 7250000, 2 => 8250000, 3 => 9250000],
+                    'perlengkapan' => [
+                        'seragam' => [
+                            ['label' => 'Blok nama, Logo, Baju dan Rok/Celana Sekolah, Seragam set Merah Putih, Khas Batik, Khas Ungu, Pramuka dan Baju Olahraga', 'amount' => 1880000],
+                            ['label' => 'Peralatan Makan', 'amount' => 50000],
+                            ['label' => 'Sampul Buku Raport', 'amount' => 130000],
+                        ],
+                        'tahunan' => [
+                            ['label' => 'Kegiatan (Field Trip, class meeting, MHH & MHQ, dll)', 'amount' => 300000],
+                            ['label' => 'Kegiatan UTS & UAS', 'amount' => 200000],
+                            ['label' => 'Buku Diniyah dan Tematik Umum', 'amount' => 690000],
+                        ],
+                        'seragam_total' => 2060000,
+                        'tahunan_total' => 1190000,
+                        'total' => 3250000,
+                    ],
+                ],
+            ],
         ],
         'TK' => [
             'uang_masuk' => [1 => 8000000],

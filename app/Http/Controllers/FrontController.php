@@ -772,6 +772,7 @@ class FrontController extends Controller
                 'smp' => SchoolSetting::jenjangHeroImage('smp', $settings),
                 'sma' => SchoolSetting::jenjangHeroImage('sma', $settings),
             ],
+            'spmbSdFee' => config('spmb.fees.SD', []),
         ] + $this->whatsappData($whatsappNumbers);
     }
 

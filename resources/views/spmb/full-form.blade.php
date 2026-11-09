@@ -317,7 +317,7 @@
                 Berikut rincian pilihan biaya pendidikan. Silakan tentukan opsi yang paling sesuai dengan kemampuan keluarga Anda.
               @endif
             </p>
-            @if ($registration->level !== 'TK' && ! empty($fees['konsumsi']))
+            @if (! in_array($registration->level, ['TK', 'SD'], true) && ! empty($fees['konsumsi']))
               <div class="mt-4 flex items-start gap-2.5 rounded-2xl border border-gold-200 bg-gold-50/70 p-3.5 text-xs sm:text-sm text-slate-700">
                 <i class="fa-solid fa-circle-info mt-0.5 text-gold-600" aria-hidden="true"></i>
                 <p>
@@ -330,6 +330,12 @@
 
           @if ($registration->level === 'TK')
             @include('partials.spmb-tk-fee-detail', ['spmbTk' => $spmbTk, 'installmentDeadline' => $installmentDeadline])
+          @elseif ($registration->level === 'SD')
+            @include('partials.spmb-sd-fee-detail', [
+              'sdFee' => $spmbSdFee ?? config('spmb.fees.SD', []),
+              'registration' => $registration,
+              'showSelection' => true,
+            ])
           @else
             <!-- Tabel Ringkasan Pilihan Biaya -->
             <div class="grid sm:grid-cols-3 gap-4">
@@ -370,6 +376,9 @@
                 <h3 class="text-sm font-extrabold text-slate-900">{{ $section['title'] }}</h3>
                 <div class="grid gap-4 sm:grid-cols-2">
                   @foreach ($section['fields'] as $field)
+                    @if ($registration->level === 'SD' && in_array($field['key'], ['pilihan_uang_masuk', 'pilihan_spp'], true))
+                      @continue
+                    @endif
                     @php
                       $fieldKey = 'fee.' . $field['key'];
                       $fieldName = 'fee[' . $field['key'] . ']';
